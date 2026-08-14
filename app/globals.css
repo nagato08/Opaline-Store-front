@@ -1,26 +1,164 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Système de design — boutique.
+ *
+ * Hérite des jetons du back-office (`../admin_ecommerce/app/globals.css`) :
+ * même cobalt d'action, mêmes couleurs de statut, mêmes neutres chauds. C'est
+ * ce qui fait reconnaître un même produit d'un côté et de l'autre.
+ *
+ * Ce qui change, c'est le régime : le back-office est dense parce qu'on y
+ * traite des lignes ; la boutique respire parce qu'on y regarde des objets.
+ * La photo porte la vente — meubles, électronique, épicerie se jugent à l'œil
+ * avant de se juger au descriptif.
+ */
+
+@theme {
+  /* --- Marque : identique au back-office -------------------------------- */
+  --color-cobalt-50: #eef2ff;
+  --color-cobalt-100: #dfe6ff;
+  --color-cobalt-200: #c4d0ff;
+  --color-cobalt-300: #9cb0ff;
+  --color-cobalt-400: #6d85ff;
+  --color-cobalt-500: #2b4eff;
+  --color-cobalt-600: #1a37e6;
+  --color-cobalt-700: #1429b4;
+  --color-cobalt-800: #14268f;
+  --color-cobalt-900: #152570;
+
+  /* --- Neutres chauds ---------------------------------------------------- */
+  --color-ink-50: #f7f7f5;
+  --color-ink-100: #eeeeea;
+  --color-ink-200: #e0e0da;
+  --color-ink-300: #c5c5bc;
+  --color-ink-400: #9a9a90;
+  --color-ink-500: #74746b;
+  --color-ink-600: #5a5a52;
+  --color-ink-700: #454540;
+  --color-ink-800: #2a2a27;
+  --color-ink-900: #161614;
+
+  /* --- Statuts : mêmes teintes, même sens strict ------------------------- */
+  --color-success: #0b7a44;
+  --color-success-soft: #e6f6ed;
+  --color-warning: #b45309;
+  --color-warning-soft: #fdf3e3;
+  --color-danger: #c02a30;
+  --color-danger-soft: #fdeceb;
+  --color-info: #0369a1;
+  --color-info-soft: #e6f3fb;
+
+  /* --- Propre à la boutique ---------------------------------------------
+   * L'argile sert de fond aux zones éditoriales et aux vignettes de rayon.
+   * Une teinte chaude et sourde met en valeur les photos de produits, là où
+   * un gris froid les refroidit. Le safran ne signale rien : il est là pour
+   * les moments de réclame (promotions, bandeau d'annonce), et jamais pour un
+   * statut — sinon il entrerait en concurrence avec l'orange d'alerte. */
+  --color-clay-50: #faf7f2;
+  --color-clay-100: #f2ece1;
+  --color-clay-200: #e6dcc9;
+  --color-clay-300: #d4c4a8;
+  --color-saffron: #c2410c;
+  --color-saffron-soft: #fdf0e6;
+
+  --color-canvas: #fbfbf8;
+  --color-surface: #ffffff;
+
+  /* --- Typographie : mêmes familles que le back-office ------------------- */
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* --- Rythme ------------------------------------------------------------
+   * Rayons plus généreux qu'en back-office : une fiche produit n'est pas une
+   * ligne de tableau, elle a le droit d'être un objet. */
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
+
+  --shadow-card: 0 1px 2px rgb(22 22 20 / 0.04), 0 1px 3px rgb(22 22 20 / 0.06);
+  --shadow-lift: 0 12px 28px -12px rgb(22 22 20 / 0.22);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    /* 16 px minimum : sous ce seuil, iOS zoome automatiquement au focus d'un
+     * champ et casse la mise en page du tunnel d'achat. */
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    line-height: 1.1;
+  }
+
+  /* Les prix s'alignent en chasse fixe : dans une grille, des montants qui
+   * dansent d'une carte à l'autre donnent une impression de bricolage. */
+  [data-price] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-cobalt-200);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Réserve la place de l'image avant son chargement : sans ratio fixe, la
+   * grille saute quand les photos arrivent. */
+  .ratio-product {
+    aspect-ratio: 4 / 5;
+  }
+
+  .ratio-wide {
+    aspect-ratio: 16 / 9;
+  }
+
+  .animate-rise {
+    animation: rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
