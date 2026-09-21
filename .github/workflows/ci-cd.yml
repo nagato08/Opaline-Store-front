@@ -36,8 +36,12 @@ jobs:
 
       - run: npm ci
 
+      # `next typegen` d'abord : les types globaux de routes (`PageProps`,
+      # `LayoutProps`, `RouteContext`) sont générés dans `.next/types`, qui
+      # n'existe pas sur un dépôt fraîchement cloné. Sans lui, `tsc` échoue
+      # sur « Cannot find name 'PageProps' ».
       - name: Types
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       # Sans `--fix` : la CI vérifie, elle ne corrige pas à la place de
       # l'auteur du commit.
@@ -95,6 +99,11 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          # Le défaut de l'action est 10 min, et le seul `docker compose pull`
+          # dépasse ce délai sur ce VPS : l'image fait plusieurs centaines de
+          # mégaoctets et la machine héberge une quinzaine d'autres projets.
+          # L'étape échouait alors que le déploiement, lui, se terminait.
+          command_timeout: 20m
           script: |
             set -e
             cd ${{ secrets.VPS_DEPLOY_PATH }}

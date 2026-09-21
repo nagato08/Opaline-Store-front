@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
+  ImageOff,
   Leaf,
   RotateCcw,
   ShieldCheck,
@@ -15,7 +16,9 @@ import { Footer } from '@/components/layout/footer';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { ButtonLink } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/product-card';
-import { departments, featured, testimonials } from '@/lib/demo';
+import { getCategoryTree, listProducts } from '@/lib/data/catalog';
+import { getCart } from '@/lib/data/cart';
+import { testimonials } from '@/lib/demo';
 
 /**
  * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
@@ -57,12 +60,21 @@ const reasons = [
 const averageRating =
   testimonials.reduce((sum, testimonial) => sum + testimonial.rating, 0) / testimonials.length;
 
-export default function HomePage() {
-  const [hero, ...rest] = featured;
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const [categories, { products }, cart] = await Promise.all([
+    getCategoryTree(),
+    listProducts({ sort: 'rating', perPage: 12 }),
+    getCart(),
+  ]);
+
+  const [hero, ...rest] = products;
+  const primaryCategory = categories[0];
 
   return (
     <>
-      <Header cartCount={2} />
+      <Header categories={categories} cartCount={cart.lines.length} />
 
       <main>
         {/* --- Accroche -----------------------------------------------------
@@ -87,9 +99,11 @@ export default function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/rayons/meubles" size="lg" className="px-7">
-                  Découvrir les meubles
-                </ButtonLink>
+                {primaryCategory ? (
+                  <ButtonLink href={`/rayons/${primaryCategory.slug}`} size="lg" className="px-7">
+                    Découvrir {primaryCategory.name.toLowerCase()}
+                  </ButtonLink>
+                ) : null}
                 <ButtonLink href="/nouveautes" variant="secondary" size="lg">
                   Voir les nouveautés
                 </ButtonLink>
@@ -98,16 +112,22 @@ export default function HomePage() {
 
             <div className="lg:col-span-3">
               <div className="ratio-wide relative overflow-hidden rounded-card bg-clay-100">
-                <Image
-                  src={hero.imageUrl}
-                  alt={hero.imageAlt}
-                  fill
-                  sizes="(min-width: 1024px) 60vw, 100vw"
-                  // Image de première vue : chargée en priorité, c'est elle qui
-                  // détermine la vitesse perçue de la page.
-                  priority
-                  className="object-cover"
-                />
+                {hero?.imageUrl ? (
+                  <Image
+                    src={hero.imageUrl}
+                    alt={hero.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 60vw, 100vw"
+                    // Image de première vue : chargée en priorité, c'est elle qui
+                    // détermine la vitesse perçue de la page.
+                    priority
+                    className="object-cover"
+                  />
+                ) : (
+                  <div aria-hidden className="grid size-full place-items-center">
+                    <ImageOff className="size-10 text-ink-400" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -133,72 +153,80 @@ export default function HomePage() {
         {/* --- Rayons -------------------------------------------------------
             Trois entrées seulement : le catalogue est généraliste, mais une
             page d'accueil qui propose douze portes n'en fait ouvrir aucune. */}
-        <section aria-labelledby="rayons" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-          <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-            Nos rayons
-          </h2>
+        {categories.length > 0 ? (
+          <section aria-labelledby="rayons" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+            <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+              Nos rayons
+            </h2>
 
-          <div className="mt-7 grid gap-5 sm:grid-cols-3">
-            {departments.map((department) => (
-              <Link
-                key={department.slug}
-                href={`/rayons/${department.slug}`}
-                className="group relative overflow-hidden rounded-card bg-clay-100"
-              >
-                <div className="relative aspect-[16/9] sm:aspect-[3/4]">
-                  <Image
-                    src={department.imageUrl}
-                    alt={department.imageAlt}
-                    fill
-                    sizes="(min-width: 640px) 32vw, 100vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                  />
-                  {/* Voile sombre du bas : garantit le contraste du texte quelle
-                      que soit la photo mise en avant par le client. */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-0 bg-gradient-to-t from-ink-900/75 via-ink-900/10 to-transparent"
-                  />
-                </div>
+            <div className="mt-7 grid gap-5 sm:grid-cols-3">
+              {categories.slice(0, 3).map((department) => (
+                <Link
+                  key={department.slug}
+                  href={`/rayons/${department.slug}`}
+                  className="group relative overflow-hidden rounded-card bg-clay-100"
+                >
+                  <div className="relative aspect-[16/9] sm:aspect-[3/4]">
+                    {department.imageUrl ? (
+                      <Image
+                        src={department.imageUrl}
+                        alt=""
+                        fill
+                        sizes="(min-width: 640px) 32vw, 100vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                      />
+                    ) : null}
+                    {/* Voile sombre du bas : garantit le contraste du texte quelle
+                        que soit la photo mise en avant par le client. */}
+                    <div
+                      aria-hidden
+                      className="absolute inset-0 bg-gradient-to-t from-ink-900/75 via-ink-900/10 to-transparent"
+                    />
+                  </div>
 
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <p className="font-display text-xl font-semibold text-white">
-                    {department.label}
-                  </p>
-                  <p className="mt-0.5 text-sm text-white/85">{department.tagline}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <p className="font-display text-xl font-semibold text-white">
+                      {department.name}
+                    </p>
+                    <p className="mt-0.5 text-sm text-white/85">
+                      {department.productCount} article{department.productCount > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* --- Sélection ----------------------------------------------------- */}
-        <section aria-labelledby="selection" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 id="selection" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                La sélection du moment
-              </h2>
-              <p className="mt-2 text-ink-600">
-                {rest.length} articles choisis, renouvelés chaque semaine.
-              </p>
+        {rest.length > 0 ? (
+          <section aria-labelledby="selection" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="selection" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+                  La sélection du moment
+                </h2>
+                <p className="mt-2 text-ink-600">
+                  {rest.length} article{rest.length > 1 ? 's' : ''} choisis, renouvelés chaque semaine.
+                </p>
+              </div>
+
+              <Link
+                href="/nouveautes"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600 transition-colors duration-150 hover:text-cobalt-700"
+              >
+                Tout voir
+                <ArrowRight aria-hidden className="size-4" />
+              </Link>
             </div>
 
-            <Link
-              href="/nouveautes"
-              className="inline-flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600 transition-colors duration-150 hover:text-cobalt-700"
-            >
-              Tout voir
-              <ArrowRight aria-hidden className="size-4" />
-            </Link>
-          </div>
-
-          <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-9 md:grid-cols-3 xl:grid-cols-4">
-            {rest.map((product, index) => (
-              <ProductCard key={product.id} product={product} priority={index < 2} />
-            ))}
-          </div>
-        </section>
+            <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-9 md:grid-cols-3 xl:grid-cols-4">
+              {rest.map((product, index) => (
+                <ProductCard key={product.id} product={product} priority={index < 2} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* --- Pourquoi cette boutique ---------------------------------------
             Trois faits, pas des adjectifs : c'est ce qui différencie
@@ -227,39 +255,50 @@ export default function HomePage() {
 
         {/* --- Épicerie ------------------------------------------------------
             Une bande éditoriale sur fond argile : elle casse la répétition des
-            grilles et met en avant le rayon qui fait revenir le client. */}
-        <section className="mt-20 bg-clay-100">
-          <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8">
-            <div>
-              <p className="text-sm font-medium tracking-wide text-ink-600 uppercase">
-                Épicerie
-              </p>
-              <h2 className="mt-3 text-3xl font-bold text-ink-900">
-                Les courses aussi, livrées avec le reste.
-              </h2>
-              <p className="mt-4 max-w-md text-ink-700">
-                Produits secs, conserves et boissons, vendus au poids quand c’est
-                pertinent. Dates limites affichées avant l’achat, jamais après.
-              </p>
-              <div className="mt-7">
-                <ButtonLink href="/rayons/epicerie" size="lg">
-                  Parcourir l’épicerie
-                </ButtonLink>
-              </div>
-            </div>
+            grilles et met en avant le rayon qui fait revenir le client. Le
+            rayon épicerie n'existe pas encore forcément dans le catalogue —
+            la bande ne s'affiche que si sa catégorie est réellement là. */}
+        {(() => {
+          const grocery = categories.find((category) => category.slug === 'epicerie');
+          if (!grocery) return null;
 
-            <div className="ratio-wide relative overflow-hidden rounded-card">
-              <Image
-                src={departments[2].imageUrl}
-                alt={departments[2].imageAlt}
-                fill
-                sizes="(min-width: 1024px) 45vw, 100vw"
-                loading="lazy"
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </section>
+          return (
+            <section className="mt-20 bg-clay-100">
+              <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8">
+                <div>
+                  <p className="text-sm font-medium tracking-wide text-ink-600 uppercase">
+                    {grocery.name}
+                  </p>
+                  <h2 className="mt-3 text-3xl font-bold text-ink-900">
+                    Les courses aussi, livrées avec le reste.
+                  </h2>
+                  <p className="mt-4 max-w-md text-ink-700">
+                    Produits secs, conserves et boissons, vendus au poids quand c’est
+                    pertinent. Dates limites affichées avant l’achat, jamais après.
+                  </p>
+                  <div className="mt-7">
+                    <ButtonLink href={`/rayons/${grocery.slug}`} size="lg">
+                      Parcourir {grocery.name.toLowerCase()}
+                    </ButtonLink>
+                  </div>
+                </div>
+
+                {grocery.imageUrl ? (
+                  <div className="ratio-wide relative overflow-hidden rounded-card">
+                    <Image
+                      src={grocery.imageUrl}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 45vw, 100vw"
+                      loading="lazy"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* --- Avis clients ---------------------------------------------- */}
         <section aria-labelledby="avis" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">

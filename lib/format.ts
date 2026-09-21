@@ -33,3 +33,10 @@ export function number(value: number, locale = 'fr-FR'): string {
 export function discountRate(priceCents: number, compareAtCents: number): string {
   return `-${Math.round((1 - priceCents / compareAtCents) * 100)} %`;
 }
+
+/** Date courte : « 18 août 2026 ». */
+export function shortDate(value: string | Date, locale = 'fr-FR'): string {
+  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(
+    new Date(value),
+  );
+}

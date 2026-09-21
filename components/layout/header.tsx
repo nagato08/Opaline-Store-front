@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
-import { departments } from '@/lib/demo';
+import type { Category } from '@/lib/data/catalog';
 
 /** Liens simples, sans sous-rayons. */
 const plainLinks = [
@@ -14,7 +14,7 @@ const plainLinks = [
   { href: '/promotions', label: 'Promotions', accent: true },
 ];
 
-export function Header({ cartCount = 0 }: { cartCount?: number }) {
+export function Header({ categories, cartCount = 0 }: { categories: Category[]; cartCount?: number }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openDept, setOpenDept] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,7 +96,7 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
 
           <nav ref={navRef} aria-label="Rayons" className="ml-6 hidden lg:block">
             <ul className="flex items-center gap-1">
-              {departments.map((department) => {
+              {categories.map((department) => {
                 const expanded = openDept === department.slug;
 
                 return (
@@ -119,7 +119,7 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
                           : 'text-ink-700 hover:bg-ink-100 hover:text-ink-900',
                       )}
                     >
-                      {department.label}
+                      {department.name}
                       <ChevronDown
                         aria-hidden
                         className={cn('size-3.5 transition-transform duration-150', expanded && 'rotate-180')}
@@ -132,38 +132,42 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
                         className="animate-rise absolute top-[calc(100%+0.5rem)] left-0 z-50 flex w-96 overflow-hidden rounded-card bg-surface shadow-lift ring-1 ring-ink-200/70"
                       >
                         <div className="min-w-0 flex-1 p-4">
-                          <ul>
-                            {department.subcategories.map((subcategory) => (
-                              <li key={subcategory.slug}>
-                                <Link
-                                  href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
-                                  className="block rounded-control px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900"
-                                >
-                                  {subcategory.label}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
+                          {department.children.length > 0 ? (
+                            <ul>
+                              {department.children.map((subcategory) => (
+                                <li key={subcategory.slug}>
+                                  <Link
+                                    href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
+                                    className="block rounded-control px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900"
+                                  >
+                                    {subcategory.name}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
                           <Link
                             href={`/rayons/${department.slug}`}
                             className="mt-1 block rounded-control px-3 py-2 text-sm font-medium text-cobalt-600 transition-colors duration-150 hover:bg-cobalt-50"
                           >
-                            Tout le rayon {department.label.toLowerCase()}
+                            Tout le rayon {department.name.toLowerCase()}
                           </Link>
                         </div>
 
-                        <Link
-                          href={`/rayons/${department.slug}`}
-                          className="group relative hidden w-32 shrink-0 sm:block"
-                        >
-                          <Image
-                            src={department.imageUrl}
-                            alt=""
-                            fill
-                            sizes="128px"
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </Link>
+                        {department.imageUrl ? (
+                          <Link
+                            href={`/rayons/${department.slug}`}
+                            className="group relative hidden w-32 shrink-0 sm:block"
+                          >
+                            <Image
+                              src={department.imageUrl}
+                              alt=""
+                              fill
+                              sizes="128px"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          </Link>
+                        ) : null}
                       </div>
                     ) : null}
                   </li>
@@ -189,9 +193,13 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon" aria-label="Rechercher">
+            <Link
+              href="/recherche"
+              aria-label="Rechercher"
+              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100"
+            >
               <Search aria-hidden className="size-5" />
-            </Button>
+            </Link>
 
             <Button
               variant="ghost"
@@ -202,9 +210,13 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
               <Heart aria-hidden className="size-5" />
             </Button>
 
-            <Button variant="ghost" size="icon" aria-label="Mon compte">
+            <Link
+              href="/compte/connexion"
+              aria-label="Mon compte"
+              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100"
+            >
               <User aria-hidden className="size-5" />
-            </Button>
+            </Link>
 
             <Link
               href="/panier"
@@ -250,28 +262,28 @@ export function Header({ cartCount = 0 }: { cartCount?: number }) {
           </div>
 
           <ul className="mt-4 space-y-1">
-            {departments.map((department) => (
+            {categories.map((department) => (
               <li key={department.slug}>
                 {/* `<details>` natif : disclosure accessible sans JavaScript
                     supplémentaire, avec son propre état clavier déjà géré par
                     le navigateur. */}
                 <details className="group">
                   <summary className="flex cursor-pointer list-none items-center justify-between rounded-control px-3 py-3 text-base text-ink-800 transition-colors duration-150 hover:bg-ink-100 [&::-webkit-details-marker]:hidden">
-                    {department.label}
+                    {department.name}
                     <ChevronDown
                       aria-hidden
                       className="size-4 text-ink-400 transition-transform duration-150 group-open:rotate-180"
                     />
                   </summary>
                   <ul className="mt-0.5 mb-1.5 ml-3 space-y-0.5 border-l border-ink-200 pl-3">
-                    {department.subcategories.map((subcategory) => (
+                    {department.children.map((subcategory) => (
                       <li key={subcategory.slug}>
                         <Link
                           href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
                           onClick={() => setMenuOpen(false)}
                           className="block rounded-control px-3 py-2.5 text-sm text-ink-600 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900"
                         >
-                          {subcategory.label}
+                          {subcategory.name}
                         </Link>
                       </li>
                     ))}

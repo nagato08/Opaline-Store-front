@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { ImageOff } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { discountRate, money, unitPrice } from '@/lib/format';
 
@@ -8,7 +9,8 @@ export type ProductSummary = {
   name: string;
   slug: string;
   brand: string | null;
-  imageUrl: string;
+  /** Nul tant qu'aucune photo n'est encore chargée sur ce produit. */
+  imageUrl: string | null;
   imageAlt: string;
   priceCents: number;
   compareAtCents: number | null;
@@ -46,22 +48,28 @@ export function ProductCard({
   return (
     <article className="group relative flex flex-col">
       <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
-        <Image
-          src={product.imageUrl}
-          alt={product.imageAlt}
-          fill
-          // Dimensions déclarées par `fill` + conteneur au ratio fixe : la
-          // grille ne saute pas pendant le chargement.
-          sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
-          priority={priority}
-          className={cn(
-            'object-cover transition-transform duration-300',
-            // Un léger rapprochement au survol, jamais de déplacement : la
-            // carte ne doit pas bouger sous le curseur.
-            'group-hover:scale-[1.03]',
-            !product.isAvailable && 'opacity-60',
-          )}
-        />
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.imageAlt}
+            fill
+            // Dimensions déclarées par `fill` + conteneur au ratio fixe : la
+            // grille ne saute pas pendant le chargement.
+            sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
+            priority={priority}
+            className={cn(
+              'object-cover transition-transform duration-300',
+              // Un léger rapprochement au survol, jamais de déplacement : la
+              // carte ne doit pas bouger sous le curseur.
+              'group-hover:scale-[1.03]',
+              !product.isAvailable && 'opacity-60',
+            )}
+          />
+        ) : (
+          <div aria-hidden className="grid size-full place-items-center">
+            <ImageOff className="size-8 text-ink-400" />
+          </div>
+        )}
 
         <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
           {hasDiscount ? (

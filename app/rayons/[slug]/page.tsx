@@ -5,12 +5,25 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { ProductCard } from '@/components/product/product-card';
 import { cn } from '@/lib/cn';
-import { departmentBySlug, productsOf, subcategoryCounts } from '@/lib/demo';
+import { getCategoryTree, listProducts } from '@/lib/data/catalog';
+import { getCart } from '@/lib/data/cart';
+
+export const dynamic = 'force-dynamic';
+
+function findCategory(tree: Awaited<ReturnType<typeof getCategoryTree>>, slug: string) {
+  for (const category of tree) {
+    if (category.slug === slug) return category;
+    const child = category.children.find((candidate) => candidate.slug === slug);
+    if (child) return { ...child, parent: category };
+  }
+  return undefined;
+}
 
 export async function generateMetadata({ params }: PageProps<'/rayons/[slug]'>) {
   const { slug } = await params;
-  const department = departmentBySlug(slug);
-  return { title: department?.label ?? 'Rayon introuvable' };
+  const categories = await getCategoryTree();
+  const department = findCategory(categories, slug);
+  return { title: department?.name ?? 'Rayon introuvable' };
 }
 
 export default async function DepartmentPage({
@@ -18,21 +31,32 @@ export default async function DepartmentPage({
   searchParams,
 }: PageProps<'/rayons/[slug]'>) {
   const { slug } = await params;
-  const department = departmentBySlug(slug);
+  const categories = await getCategoryTree();
+  const department = findCategory(categories, slug);
 
   if (!department) notFound();
 
   const query = await searchParams;
   const activeSlug = typeof query.rayon === 'string' ? query.rayon : undefined;
-  const active = department.subcategories.find((sub) => sub.slug === activeSlug);
+  const active = department.children.find((sub) => sub.slug === activeSlug);
 
-  const products = productsOf(department.slug, active?.slug);
-  const counts = subcategoryCounts(department.slug);
-  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+  const [{ products }, departmentTotal, childCounts, cart] = await Promise.all([
+    listProducts({ categorySlug: active?.slug ?? department.slug, perPage: 48 }),
+    listProducts({ categorySlug: department.slug, perPage: 1 }).then((page) => page.total),
+    Promise.all(
+      department.children.map((child) =>
+        listProducts({ categorySlug: child.slug, perPage: 1 }).then((page) => [child.slug, page.total] as const),
+      ),
+    ),
+    getCart(),
+  ]);
+
+  const total = departmentTotal;
+  const counts = Object.fromEntries(childCounts);
 
   return (
     <>
-      <Header cartCount={2} />
+      <Header categories={categories} cartCount={cart.lines.length} />
 
       <main>
         <section className="mx-auto max-w-7xl px-4 pt-8 lg:px-8">
@@ -44,19 +68,21 @@ export default async function DepartmentPage({
               /
             </span>
             <span className="text-ink-700" aria-current="page">
-              {active ? `${department.label} · ${active.label}` : department.label}
+              {active ? `${department.name} · ${active.name}` : department.name}
             </span>
           </nav>
 
           <h1 className="mt-3 text-3xl font-bold text-ink-900 sm:text-4xl">
-            {active ? active.label : department.label}
+            {active ? active.name : department.name}
           </h1>
-          <p className="mt-2 max-w-xl text-ink-600">{department.tagline}</p>
+          <p className="mt-2 max-w-xl text-ink-600">
+            {total} article{total > 1 ? 's' : ''} dans ce rayon.
+          </p>
 
           {/* Onglets de sous-rayon : l'état vit dans l'URL, donc partageable
               et réversible par le bouton « précédent », comme le reste du
               filtrage sur ce projet. */}
-          {department.subcategories.length > 1 ? (
+          {department.children.length > 1 ? (
             <div className="mt-6 -mx-4 overflow-x-auto px-4 pb-1">
               <div className="flex min-w-max items-center gap-2">
                 <Link
@@ -70,7 +96,7 @@ export default async function DepartmentPage({
                 >
                   Tout <span className="opacity-70">({total})</span>
                 </Link>
-                {department.subcategories.map((sub) => (
+                {department.children.map((sub) => (
                   <Link
                     key={sub.slug}
                     href={`/rayons/${department.slug}?rayon=${sub.slug}`}
@@ -81,7 +107,7 @@ export default async function DepartmentPage({
                         : 'bg-ink-100 text-ink-700 hover:bg-ink-200',
                     )}
                   >
-                    {sub.label} <span className="opacity-70">({counts[sub.slug] ?? 0})</span>
+                    {sub.name} <span className="opacity-70">({counts[sub.slug] ?? 0})</span>
                   </Link>
                 ))}
               </div>
@@ -100,7 +126,7 @@ export default async function DepartmentPage({
               </h2>
               <p className="mt-1.5 max-w-sm text-ink-600">
                 Le catalogue s’étoffe régulièrement. Revenez voir, ou parcourez tout le rayon{' '}
-                {department.label.toLowerCase()}.
+                {department.name.toLowerCase()}.
               </p>
               <Link
                 href={`/rayons/${department.slug}`}

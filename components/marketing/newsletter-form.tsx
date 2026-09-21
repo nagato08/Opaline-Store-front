@@ -3,20 +3,16 @@
 import { useId, useState } from 'react';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { apiFetch, ApiError } from '@/lib/api';
 
-/**
- * Inscription à la lettre d'information.
- *
- * `POST /content/newsletter` existe côté API mais rien n'est encore branché
- * ailleurs sur ce projet : la confirmation reste locale, honnête sur ce
- * qu'elle fait réellement plutôt que de prétendre à un envoi.
- */
+/** Inscription à la lettre d'information, branchée sur `POST /content/newsletter`. */
 export function NewsletterForm() {
   const id = useId();
   const [email, setEmail] = useState('');
-  const [done, setDone] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'pending' | 'done' | 'error'>('idle');
+  const [error, setError] = useState('');
 
-  if (done) {
+  if (status === 'done') {
     return (
       <p role="status" className="mt-6 flex items-center gap-2 text-[15px] font-medium text-white">
         <Check aria-hidden className="size-5 shrink-0" />
@@ -27,9 +23,21 @@ export function NewsletterForm() {
 
   return (
     <form
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
-        setDone(true);
+        setStatus('pending');
+        setError('');
+
+        try {
+          await apiFetch('/content/newsletter', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+          });
+          setStatus('done');
+        } catch (caught) {
+          setStatus('error');
+          setError(caught instanceof ApiError ? caught.message : 'Erreur inattendue. Réessayez.');
+        }
       }}
       className="mt-6 flex flex-col gap-3 sm:max-w-md sm:flex-row"
     >
@@ -46,9 +54,14 @@ export function NewsletterForm() {
         placeholder="vous@exemple.fr"
         className="h-12 min-w-0 flex-1 rounded-control bg-white px-4 text-[15px] text-ink-900 placeholder:text-ink-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       />
-      <Button type="submit" size="lg" className="shrink-0">
+      <Button type="submit" size="lg" className="shrink-0" loading={status === 'pending'}>
         S’inscrire
       </Button>
+      {status === 'error' ? (
+        <p role="alert" className="text-sm text-white/80 sm:basis-full">
+          {error}
+        </p>
+      ) : null}
     </form>
   );
 }
