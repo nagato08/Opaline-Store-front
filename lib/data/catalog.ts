@@ -153,3 +153,45 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     throw error;
   }
 }
+
+// --- Avis clients ------------------------------------------------------------
+
+export type Review = {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  author: string;
+  isVerifiedPurchase: boolean;
+  /** Réponse publique du commerçant, écrite au moment de la modération. */
+  reply: string | null;
+  createdAt: string;
+};
+
+export type ReviewSummary = {
+  reviews: Review[];
+  total: number;
+  /** Nombre d'avis par note, de 5 à 1 — l'ordre vient de l'API. */
+  distribution: Array<{ rating: number; count: number }>;
+};
+
+/**
+ * Avis publiés d'un produit.
+ *
+ * Seuls les avis approuvés en modération sortent de l'API : rien à filtrer
+ * ici. Un échec ne doit pas emporter la fiche produit — elle vend, les avis
+ * l'accompagnent.
+ */
+export async function listReviews(productId: string): Promise<ReviewSummary> {
+  try {
+    const page = await apiFetch<{
+      items: Review[];
+      meta: { total: number };
+      distribution: Array<{ rating: number; count: number }>;
+    }>(`/products/${encodeURIComponent(productId)}/reviews?perPage=10`);
+
+    return { reviews: page.items, total: page.meta.total, distribution: page.distribution };
+  } catch {
+    return { reviews: [], total: 0, distribution: [] };
+  }
+}

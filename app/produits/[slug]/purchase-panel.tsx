@@ -145,23 +145,34 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
         </p>
       ) : null}
 
-      {variant?.measure ? (
-        <div className="flex items-center gap-3">
-          <label htmlFor="quantity" className="text-sm font-medium text-ink-900">
-            Quantité ({unit})
-          </label>
-          <input
-            id="quantity"
-            type="number"
-            min={min}
-            step={step}
-            value={quantity}
-            onChange={(event) => setQuantity(Number(event.target.value))}
-            inputMode="decimal"
-            className="h-11 w-28 rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
-          />
-        </div>
-      ) : null}
+      {/* La quantité s'affiche pour **tout** produit, pas seulement pour ceux
+          vendus au poids. Sans elle, acheter deux chaises obligeait à cliquer
+          deux fois sur « Ajouter au panier », et le second clic ajoutait une
+          unité de plus sans que le champ le montre.
+
+          L'unité ne figure dans le libellé que lorsqu'elle existe : « Quantité
+          (pièces) » est du bruit sur un canapé. */}
+      <div className="flex items-center gap-3">
+        <label htmlFor="quantity" className="text-sm font-medium text-ink-900">
+          {unit ? `Quantité (${unit})` : 'Quantité'}
+        </label>
+        <input
+          id="quantity"
+          type="number"
+          min={min}
+          step={step}
+          /* Plafonné au stock réel : l'API refuserait de toute façon, mais
+             l'apprendre après avoir rempli le tunnel est pénible. */
+          max={variant?.stock.available && variant.stock.available > 0 ? variant.stock.available : undefined}
+          value={quantity}
+          onChange={(event) => setQuantity(Number(event.target.value))}
+          /* `decimal` seulement pour la vente au poids : sur un article à la
+             pièce, le clavier numérique du téléphone n'a pas à proposer une
+             virgule. */
+          inputMode={variant?.measure ? 'decimal' : 'numeric'}
+          className="h-11 w-28 rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+        />
+      </div>
 
       <Button
         size="lg"

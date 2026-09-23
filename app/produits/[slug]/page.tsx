@@ -5,8 +5,9 @@ import { ImageOff, Snowflake, Star } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { number } from '@/lib/format';
-import { getCategoryTree, getProductBySlug } from '@/lib/data/catalog';
+import { getCategoryTree, getProductBySlug, listReviews } from '@/lib/data/catalog';
 import { getCart } from '@/lib/data/cart';
+import { Reviews } from '@/components/product/reviews';
 import { PurchasePanel } from './purchase-panel';
 
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,10 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
   const [product, categories, cart] = await Promise.all([getProductBySlug(slug), getCategoryTree(), getCart()]);
 
   if (!product) notFound();
+
+  /* Les avis se chargent après le produit, pas en parallèle : leur route est
+     indexée par l'identifiant du produit, qu'on n'a pas avant de l'avoir lu. */
+  const reviews = await listReviews(product.id);
 
   const primaryCategory = product.categories.find((category) => category.isPrimary) ?? product.categories[0];
   const food = product.compliance.food;
@@ -175,6 +180,8 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
               <p className="mt-3 whitespace-pre-line text-ink-700">{product.description}</p>
             </div>
           ) : null}
+
+          <Reviews summary={reviews} />
         </section>
       </main>
 
