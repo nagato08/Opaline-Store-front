@@ -118,6 +118,14 @@ jobs:
       # conteneur a bien démarré et répond.
       - name: Vérifier que la boutique répond
         run: |
+          # Un secret absent donne une adresse `https:///…` sur laquelle curl
+          # échoue à chaque tentative : sans ce garde-fou, la cause se présente
+          # comme une minute d'attente muette suivie d'un échec sans raison.
+          if [ -z "${{ secrets.SITE_DOMAIN }}" ]; then
+            echo "::error::Le secret SITE_DOMAIN est absent du dépôt : impossible de vérifier que la boutique répond."
+            exit 1
+          fi
+
           # Le conteneur vient d'être recréé : sonder dans la seconde qui suit
           # ne teste que la vitesse de démarrage de Node.
           sleep 10
