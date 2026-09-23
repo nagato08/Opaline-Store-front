@@ -209,14 +209,15 @@ export function HeaderClient({
               <Search aria-hidden className="size-5" />
             </Link>
 
-            <Button
-              variant="ghost"
-              size="icon"
+            {/* Un lien, pas un bouton : l'icône portait déjà son `aria-label`
+                mais ne menait nulle part. */}
+            <Link
+              href="/favoris"
               aria-label="Mes favoris"
-              className="hidden sm:inline-flex"
+              className="hidden size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100 sm:grid"
             >
               <Heart aria-hidden className="size-5" />
-            </Button>
+            </Link>
 
             <Link
               href="/compte/connexion"

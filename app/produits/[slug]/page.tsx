@@ -9,6 +9,7 @@ import { getCategoryTree, getProductBySlug, listReviews } from '@/lib/data/catal
 import { getCart } from '@/lib/data/cart';
 import { Reviews } from '@/components/product/reviews';
 import { PurchasePanel } from './purchase-panel';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +118,12 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
               ) : null}
 
               <PurchasePanel product={product} />
+
+              <WishlistButton
+                productId={product.id}
+                variantId={product.variants[0]?.id}
+                productSlug={product.slug}
+              />
 
               {food ? (
                 <div className="mt-10 space-y-4 border-t border-ink-200/70 pt-8">
