@@ -195,3 +195,25 @@ export async function listReviews(productId: string): Promise<ReviewSummary> {
     return { reviews: [], total: 0, distribution: [] };
   }
 }
+
+/**
+ * Quelques avis réels, pour la page d'accueil.
+ *
+ * Il n'existe pas de route « tous les avis de la boutique » : ils sont indexés
+ * par produit. On interroge donc les premiers produits mis en avant, ce qui
+ * borne le coût — quatre appels, pas un par article du catalogue.
+ *
+ * Seuls les avis portant un texte sont retenus : une note sans commentaire ne
+ * raconte rien dans une section qui cite des clients. Rien à afficher rend un
+ * tableau vide, et la section disparaît — c'est préférable à des témoignages
+ * inventés, qui sont une pratique commerciale trompeuse.
+ */
+export async function listHomeReviews(productIds: string[], limit = 3): Promise<Review[]> {
+  const summaries = await Promise.all(productIds.slice(0, 4).map((id) => listReviews(id)));
+
+  return summaries
+    .flatMap((summary) => summary.reviews)
+    .filter((review) => review.body && review.body.trim().length > 0)
+    .sort((a, b) => b.rating - a.rating || b.createdAt.localeCompare(a.createdAt))
+    .slice(0, limit);
+}

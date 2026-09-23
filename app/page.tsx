@@ -16,9 +16,8 @@ import { Footer } from '@/components/layout/footer';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { ButtonLink } from '@/components/ui/button';
 import { ProductCard } from '@/components/product/product-card';
-import { getCategoryTree, listProducts } from '@/lib/data/catalog';
+import { getCategoryTree, listHomeReviews, listProducts } from '@/lib/data/catalog';
 import { getCart } from '@/lib/data/cart';
-import { testimonials } from '@/lib/demo';
 
 /**
  * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
@@ -57,9 +56,6 @@ const reasons = [
   },
 ];
 
-const averageRating =
-  testimonials.reduce((sum, testimonial) => sum + testimonial.rating, 0) / testimonials.length;
-
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
@@ -68,6 +64,10 @@ export default async function HomePage() {
     listProducts({ sort: 'rating', perPage: 12 }),
     getCart(),
   ]);
+
+  /* Les avis se chargent après le catalogue : ils sont indexés par produit,
+     et on n'a les identifiants qu'une fois la liste lue. */
+  const homeReviews = await listHomeReviews(products.map((product) => product.id));
 
   const [hero, ...rest] = products;
   const primaryCategory = categories[0];
@@ -300,51 +300,55 @@ export default async function HomePage() {
           );
         })()}
 
-        {/* --- Avis clients ---------------------------------------------- */}
-        <section aria-labelledby="avis" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+        {/* --- Avis clients ----------------------------------------------
+            Les avis affichés ici sont **réels** : ils viennent de la
+            modération, et la section disparaît tant qu'aucun client n'a écrit.
+            Des témoignages inventés seraient une pratique commerciale
+            trompeuse, et c'est exactement ce qui se trouvait ici. */}
+        {homeReviews.length > 0 ? (
+          <section aria-labelledby="avis" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
             <h2 id="avis" className="text-2xl font-bold text-ink-900 sm:text-3xl">
               Ce qu’en disent nos clients
             </h2>
-            <p className="flex items-center gap-1.5 text-[15px] text-ink-600">
-              <Star aria-hidden className="size-4 fill-current text-saffron" />
-              <span className="font-semibold text-ink-900">{averageRating.toFixed(1)}</span>
-              sur 5, avis vérifiés
-            </p>
-          </div>
 
-          <div className="mt-8 grid gap-5 sm:grid-cols-3">
-            {testimonials.map((testimonial) => (
-              <figure
-                key={testimonial.author}
-                className="flex flex-col rounded-card bg-surface p-6 shadow-card"
-              >
-                <div aria-hidden className="flex gap-0.5 text-saffron">
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <Star
-                      key={index}
-                      className={
-                        index < testimonial.rating
-                          ? 'size-4 fill-current'
-                          : 'size-4 fill-current text-ink-200'
-                      }
-                    />
-                  ))}
-                </div>
-                <span className="sr-only">Note de {testimonial.rating} sur 5</span>
+            <div className="mt-8 grid gap-5 sm:grid-cols-3">
+              {homeReviews.map((review) => (
+                <figure
+                  key={review.id}
+                  className="flex flex-col rounded-card bg-surface p-6 shadow-card"
+                >
+                  <div aria-hidden className="flex gap-0.5 text-saffron">
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <Star
+                        key={index}
+                        className={
+                          index < review.rating
+                            ? 'size-4 fill-current'
+                            : 'size-4 fill-current text-ink-200'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="sr-only">Note de {review.rating} sur 5</span>
 
-                <blockquote className="mt-3 flex-1 text-[15px] text-ink-700">
-                  “{testimonial.quote}”
-                </blockquote>
+                  <blockquote className="mt-3 flex-1 text-[15px] text-ink-700">
+                    “{review.body}”
+                  </blockquote>
 
-                <figcaption className="mt-4 text-sm font-medium text-ink-900">
-                  {testimonial.author}
-                  <span className="font-normal text-ink-500"> · {testimonial.city}</span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </section>
+                  <figcaption className="mt-4 text-sm font-medium text-ink-900">
+                    {review.author}
+                    {/* La mention n'apparaît que si l'achat est réellement
+                        rattaché à une commande : l'afficher partout serait la
+                        même tromperie sous une autre forme. */}
+                    {review.isVerifiedPurchase ? (
+                      <span className="font-normal text-success"> · achat vérifié</span>
+                    ) : null}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* --- Lettre d'information ---------------------------------------
             Bande sombre : elle marque une rupture volontaire avec le reste de
