@@ -71,8 +71,70 @@ export type Cart = {
   requiresShipping: boolean;
 };
 
+/**
+ * Panier vide, fabriqué localement.
+ *
+ * Même forme que celui de l'API, tous les compteurs à zéro. Il évite de
+ * demander un panier au serveur quand on sait qu'il n'y en a pas.
+ */
+function emptyCart(): Cart {
+  return {
+    id: '',
+    token: '',
+    status: 'ACTIVE',
+    email: null,
+    shippingAddress: null,
+    billingAddress: null,
+    currencyCode: 'EUR',
+    pricesIncludeTax: true,
+    lines: [],
+    subtotalCents: 0,
+    shippingCents: 0,
+    taxCents: 0,
+    ecoTaxCents: 0,
+    discountCents: 0,
+    totalCents: 0,
+    taxLines: [],
+    discounts: [],
+    rejectedCoupons: [],
+    shippingMethodId: null,
+    hasStockIssue: false,
+    requiresShipping: false,
+  };
+}
+
+/**
+ * Panier courant.
+ *
+ * **Ne demande rien à l'API tant qu'aucun panier n'existe.** `GET /cart` crée
+ * le panier s'il n'en trouve pas, et le `Set-Cookie` de la réponse revient au
+ * serveur Next, pas au navigateur : rendre l'en-tête d'une page créait donc
+ * une ligne en base à chaque affichage, sans que le visiteur en garde jamais
+ * la trace. Mesuré en production : trois visites de la page d'accueil, trois
+ * paniers.
+ *
+ * Un visiteur qui n'a rien ajouté n'a pas de panier, et c'est exact — il en
+ * obtient un au premier `POST /cart/items`, appelé depuis le navigateur, où
+ * le cookie revient à son destinataire.
+ *
+ * La session connectée compte aussi : l'API rattache alors le panier au
+ * compte, sans cookie de panier.
+ */
 export async function getCart(): Promise<Cart> {
-  return apiFetch<Cart>('/cart');
+  if (typeof window === 'undefined') {
+    const { cookies } = await import('next/headers');
+    const jar = await cookies();
+
+    if (!jar.get('cart_token') && !jar.get('access_token')) return emptyCart();
+  }
+
+  try {
+    return await apiFetch<Cart>('/cart');
+  } catch {
+    // Un panier illisible ne doit pas faire tomber la page : l'en-tête et le
+    // pied de page en dépendent, donc toute la boutique.
+    return emptyCart();
+  }
 }
 
 export async function addCartItem(variantId: string, quantity: number): Promise<Cart> {

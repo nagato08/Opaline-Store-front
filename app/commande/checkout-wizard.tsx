@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, ChevronLeft, CircleAlert, Loader2, Truck } from 'lucide-react';
@@ -361,9 +363,12 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
                 className="mt-0.5 size-4 accent-ink-900"
               />
               J’accepte les{' '}
-              <a href="/conditions-generales-de-vente" className="underline underline-offset-2 hover:text-ink-900">
+              <Link
+                href="/conditions-generales-de-vente"
+                className="underline underline-offset-2 hover:text-ink-900"
+              >
                 conditions générales de vente
-              </a>
+              </Link>
               .
             </label>
 

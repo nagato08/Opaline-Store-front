@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { getCategoryTree } from '@/lib/data/catalog';
+import { getStoreSettings } from '@/lib/data/settings';
 
 /**
  * Pied de page.
@@ -8,16 +10,11 @@ import Link from 'next/link';
  * y reléguer n'est pas de la négligence : c'est leur place attendue, et un
  * client qui les cherche sait où regarder.
  */
+/* Les rayons ne sont **pas** listés ici : ils viennent de l'API. La liste
+   codée en dur pointait vers `/rayons/meubles` alors que la catégorie
+   s'appelle « mobilier » — un lien mort dans le pied de page de chaque page,
+   invisible tant que personne ne clique. */
 const columns = [
-  {
-    title: 'Acheter',
-    links: [
-      { href: '/rayons/meubles', label: 'Meubles' },
-      { href: '/rayons/electronique', label: 'Électronique' },
-      { href: '/rayons/epicerie', label: 'Épicerie' },
-      { href: '/promotions', label: 'Promotions' },
-    ],
-  },
   {
     title: 'Aide',
     links: [
@@ -38,20 +35,33 @@ const columns = [
   },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const [categories, store] = await Promise.all([getCategoryTree(), getStoreSettings()]);
+
+  const shopColumn = {
+    title: 'Acheter',
+    links: [
+      ...categories.map((category) => ({
+        href: `/rayons/${category.slug}`,
+        label: category.name,
+      })),
+      { href: '/promotions', label: 'Promotions' },
+    ],
+  };
+
   return (
     <footer className="mt-20 border-t border-ink-200/70 bg-clay-50">
       <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-1">
-            <p className="font-display text-xl font-bold text-ink-900">Boutique</p>
+            <p className="font-display text-xl font-bold text-ink-900">{store.name}</p>
             <p className="mt-3 max-w-xs text-sm text-ink-600">
               Meubles, électronique et épicerie. Expédié depuis la France, livré
               en France et au Canada.
             </p>
           </div>
 
-          {columns.map((column) => (
+          {[shopColumn, ...columns].map((column) => (
             <nav key={column.title} aria-labelledby={`pied-${column.title}`}>
               <h2
                 id={`pied-${column.title}`}
@@ -77,7 +87,7 @@ export function Footer() {
 
         <div className="mt-12 flex flex-col gap-4 border-t border-ink-200 pt-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-ink-500">
-            © {new Date().getFullYear()} Boutique. Tous droits réservés.
+            © {new Date().getFullYear()} {store.name}. Tous droits réservés.
           </p>
           <p className="text-sm text-ink-500">
             Prix affichés toutes taxes comprises pour la France.

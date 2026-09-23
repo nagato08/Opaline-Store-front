@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { apiFetch, ApiError } from '@/lib/api';
@@ -52,9 +53,12 @@ export function LoginForm() {
           <label htmlFor="password" className="text-sm font-medium text-ink-900">
             Mot de passe
           </label>
-          <a href="/compte/mot-de-passe-oublie" className="text-sm text-cobalt-600 hover:underline">
+          <Link
+            href="/compte/mot-de-passe-oublie"
+            className="text-sm text-cobalt-600 hover:underline"
+          >
             Oublié ?
-          </a>
+          </Link>
         </div>
         <input
           id="password"
