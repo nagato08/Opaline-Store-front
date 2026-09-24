@@ -98,7 +98,15 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
             {/* --- Informations et achat ------------------------------------ */}
             <div>
               {product.brand ? (
-                <p className="text-sm tracking-wide text-ink-500 uppercase">{product.brand.name}</p>
+                /* La marque mène à la recherche filtrée : c'est le geste
+                   attendu quand on la lit, et la facette existait déjà côté
+                   API sans que rien ne l'utilise. */
+                <Link
+                  href={`/recherche?marque=${encodeURIComponent(product.brand.id)}`}
+                  className="text-sm tracking-wide text-ink-500 uppercase hover:text-ink-800 hover:underline"
+                >
+                  {product.brand.name}
+                </Link>
               ) : null}
 
               <h1 className="mt-1 font-display text-3xl font-bold text-ink-900 sm:text-4xl">

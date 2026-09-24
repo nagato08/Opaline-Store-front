@@ -21,12 +21,14 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
   const query = await searchParams;
   const q = typeof query.q === 'string' ? query.q.trim() : '';
   const activeCategoryId = typeof query.categorie === 'string' ? query.categorie : undefined;
+  const activeBrandId = typeof query.marque === 'string' ? query.marque : undefined;
   const inStockOnly = query.stock === '1';
 
   const [{ products, total, facets, correctedTerm }, categories, cart] = await Promise.all([
     search({
       q: q || undefined,
       categoryIds: activeCategoryId ? [activeCategoryId] : undefined,
+      brandIds: activeBrandId ? [activeBrandId] : undefined,
       inStockOnly,
       perPage: 48,
     }),
@@ -38,6 +40,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
     const params = new URLSearchParams();
     if (q) params.set('q', q);
     if (activeCategoryId) params.set('categorie', activeCategoryId);
+    if (activeBrandId) params.set('marque', activeBrandId);
     if (inStockOnly) params.set('stock', '1');
     for (const [key, value] of Object.entries(overrides)) {
       if (value === undefined) params.delete(key);
@@ -113,6 +116,39 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
                         className={cn(
                           'flex items-center justify-between gap-2 rounded-control px-2.5 py-1.5 text-sm transition-colors duration-150',
                           activeCategoryId === bucket.value ? 'bg-ink-100 font-medium text-ink-900' : 'text-ink-600 hover:bg-ink-100',
+                        )}
+                      >
+                        <span>{bucket.label}</span>
+                        <span className="text-ink-400">{bucket.count}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {facets.brands.length > 0 ? (
+              <div className="mt-6">
+                <h2 className="text-sm font-semibold tracking-wide text-ink-900 uppercase">Marque</h2>
+                <ul className="mt-3 space-y-1">
+                  <li>
+                    <Link
+                      href={filterHref({ marque: undefined })}
+                      className={cn(
+                        'block rounded-control px-2.5 py-1.5 text-sm transition-colors duration-150',
+                        !activeBrandId ? 'bg-ink-100 font-medium text-ink-900' : 'text-ink-600 hover:bg-ink-100',
+                      )}
+                    >
+                      Toutes
+                    </Link>
+                  </li>
+                  {facets.brands.map((bucket) => (
+                    <li key={bucket.value}>
+                      <Link
+                        href={filterHref({ marque: bucket.value })}
+                        className={cn(
+                          'flex items-center justify-between gap-2 rounded-control px-2.5 py-1.5 text-sm transition-colors duration-150',
+                          activeBrandId === bucket.value ? 'bg-ink-100 font-medium text-ink-900' : 'text-ink-600 hover:bg-ink-100',
                         )}
                       >
                         <span>{bucket.label}</span>
