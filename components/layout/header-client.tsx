@@ -75,12 +75,9 @@ export function HeaderClient({
 
   return (
     <>
-      {/* Bandeau d'annonce : le safran ne sert qu'à ça, jamais à un statut. */}
-      <div className="bg-saffron-soft text-center text-sm text-saffron">
-        <p className="mx-auto max-w-7xl px-4 py-2.5">
-          Livraison offerte dès 60&nbsp;€ en France métropolitaine
-        </p>
-      </div>
+      {/* Le bandeau d'annonce vient des campagnes, pas du code : il se règle
+          depuis le back-office, avec ses dates et son ciblage. Il vit dans la
+          mise en page racine — voir `components/marketing/campaigns.tsx`. */}
 
       <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-canvas/90 backdrop-blur-md">
         <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 lg:px-8">

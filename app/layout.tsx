@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { CookieBanner } from '@/components/legal/cookie-banner';
+import { Campaigns } from '@/components/marketing/campaigns';
 import { getStoreSettings } from '@/lib/data/settings';
 import { Bricolage_Grotesque, IBM_Plex_Mono, Public_Sans } from 'next/font/google';
 import './globals.css';
@@ -54,6 +55,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="fr" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body className="min-h-dvh antialiased">
+        {/* Avant le contenu : la barre d'annonce coiffe la page, comme le
+            bandeau qu'elle remplace. */}
+        <Campaigns />
         {children}
         {/* Dans la mise en page racine et non dans chaque page : une seule
             adresse oubliée suffirait à afficher un traceur sans consentement. */}
