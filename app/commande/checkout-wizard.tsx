@@ -9,14 +9,17 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { money } from '@/lib/format';
 import { ApiError } from '@/lib/api';
+import { SplitShippingNotice } from '@/components/order/split-shipping-notice';
 import {
   getShippingOptions,
+  getShippingPlan,
   placeOrder,
   setContact,
   setShippingMethod,
   type Address,
   type Cart,
   type PaymentMethod,
+  type ShippingPlan,
   type ShippingQuote,
 } from '@/lib/data/cart';
 
@@ -62,6 +65,9 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
   );
 
   const [quotes, setQuotes] = useState<ShippingQuote[]>([]);
+  /* Renseigné seulement quand aucun mode groupé n'existe : il porte alors
+     l'explication et les groupes à expédier séparément. */
+  const [plan, setPlan] = useState<ShippingPlan | null>(null);
   const [methodId, setMethodId] = useState(cart.shippingMethodId ?? '');
 
   const [paymentMethods] = useState(initialPaymentMethods);
@@ -87,6 +93,12 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
       const options = await getShippingOptions();
       setQuotes(options);
       if (options.length > 0) setMethodId((current) => current || options[0].methodId);
+
+      /* Le plan n'est demandé que lorsqu'aucun mode ne sort : c'est le seul
+         cas où il apprend quelque chose, et l'appeler systématiquement
+         doublerait le calcul des totaux pour rien. */
+      setPlan(options.length === 0 ? await getShippingPlan() : null);
+
       setStep('shipping');
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : 'Erreur inattendue. Réessayez.');
@@ -259,7 +271,23 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
         {/* --- Étape 2 : livraison ------------------------------------------ */}
         {step === 'shipping' ? (
           <form onSubmit={submitShipping} className="mt-8 space-y-5">
-            {quotes.length === 0 ? (
+            {quotes.length === 0 && plan?.splitRequired ? (
+              <SplitShippingNotice
+                cart={cart}
+                groups={plan.groups}
+                onCartChange={async (updated) => {
+                  setCart(updated);
+
+                  /* Le panier a changé : les modes disponibles aussi. On
+                     recharge plutôt que de deviner, l'API restant la seule
+                     source de vérité sur la livraison. */
+                  const options = await getShippingOptions();
+                  setQuotes(options);
+                  if (options.length > 0) setMethodId(options[0].methodId);
+                  setPlan(options.length === 0 ? await getShippingPlan() : null);
+                }}
+              />
+            ) : quotes.length === 0 ? (
               <p className="flex items-center gap-2 rounded-card bg-warning-soft px-4 py-3 text-sm text-warning">
                 <CircleAlert aria-hidden className="size-4 shrink-0" />
                 Aucun mode de livraison n’est disponible pour cette adresse.

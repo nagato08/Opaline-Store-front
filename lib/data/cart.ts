@@ -219,3 +219,36 @@ export async function placeOrder(
     body: JSON.stringify(input),
   });
 }
+
+/** Ce qui empêche un groupe d'articles de partir avec les autres. */
+export type ShippingConstraint = 'COLD_CHAIN' | 'OVERSIZED' | 'STANDARD';
+
+export type ShippingGroup = {
+  constraint: ShippingConstraint;
+  cartItemIds: string[];
+  options: ShippingQuote[];
+};
+
+export type ShippingPlan = {
+  splitRequired: boolean;
+  combined: ShippingQuote[];
+  groups: ShippingGroup[];
+};
+
+/**
+ * Plan de livraison du panier.
+ *
+ * Distinct de `getShippingOptions`, qui rend une liste plate et ne dit rien
+ * quand elle est vide. Celui-ci explique *pourquoi* : un meuble hors gabarit et
+ * une denrée réfrigérée ne trouvent aucun transporteur commun, et la commande
+ * n'est livrable qu'en deux expéditions.
+ */
+export async function getShippingPlan(): Promise<ShippingPlan> {
+  try {
+    return await apiFetch<ShippingPlan>('/cart/shipping-plan');
+  } catch {
+    /* Le plan est un supplément d'explication : son échec ne doit pas
+       empêcher le tunnel de fonctionner avec la liste plate. */
+    return { splitRequired: false, combined: [], groups: [] };
+  }
+}
