@@ -35,16 +35,105 @@ export function Campaigns() {
     };
   }, [pathname]);
 
+  /* Un seul verrou pour toutes les fenêtres : deux modales superposées sont
+     inutilisables, et la première déclenchée doit gagner. Le tri par priorité
+     décroissante vient de l'API et ne départage que les égalités. */
+  const [openPopup, setOpenPopup] = useState<string | null>(null);
+
   const bar = campaigns.find((campaign) => campaign.type === 'TOP_BAR');
-  const popup = campaigns.find(
+  const notices = campaigns.filter(
+    (campaign) => campaign.type === 'BANNER' || campaign.type === 'IN_PAGE_NOTICE',
+  );
+  const popups = campaigns.filter(
     (campaign) => campaign.type === 'POPUP' || campaign.type === 'INTERSTITIAL',
   );
 
   return (
     <>
       {bar ? <TopBar key={bar.id} campaign={bar} /> : null}
-      {popup ? <Popup key={popup.id} campaign={popup} /> : null}
+
+      {notices.map((campaign) => (
+        <Notice key={campaign.id} campaign={campaign} />
+      ))}
+
+      {/* Toutes les fenêtres arment leur déclencheur. N'en armer qu'une — la
+          plus prioritaire — condamnait les autres : une campagne sur intention
+          de sortie, qui ne se produit jamais au doigt, empêchait la fenêtre de
+          bienvenue de paraître sur mobile. */}
+      {popups.map((campaign) => (
+        <Popup
+          key={campaign.id}
+          campaign={campaign}
+          isOpen={openPopup === campaign.id}
+          onRequestOpen={() => {
+            /* Rend `true` seulement si la place était libre : celle qui perd
+               la course ne doit pas compter d'impression. */
+            let won = false;
+            setOpenPopup((current) => {
+              won = current === null;
+              return current ?? campaign.id;
+            });
+            return won;
+          }}
+          onClose={() => setOpenPopup(null)}
+        />
+      ))}
     </>
+  );
+}
+
+/**
+ * Bandeau de page, sous la barre haute.
+ *
+ * Le placement `slot` de la campagne dit où le commerçant voudrait le voir ;
+ * la boutique n'a qu'un emplacement pour l'instant, et l'annoncer ici vaut
+ * mieux que de laisser croire à un rendu par zone qui n'existe pas.
+ */
+function Notice({ campaign }: { campaign: Campaign }) {
+  const [closed, setClosed] = useState(false);
+  const rules = campaign.displayRules ?? {};
+
+  useEffect(() => {
+    trackCampaign(campaign.id, 'IMPRESSION');
+  }, [campaign.id]);
+
+  if (closed) return null;
+
+  return (
+    <div className="border-b border-cobalt-200 bg-cobalt-50">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-cobalt-700">{campaign.title}</p>
+          {campaign.body ? (
+            <p className="mt-0.5 text-sm text-ink-600">{campaign.body}</p>
+          ) : null}
+        </div>
+
+        {campaign.ctaUrl ? (
+          <Link
+            href={campaign.ctaUrl}
+            onClick={() => trackCampaign(campaign.id, 'CLICK')}
+            className="shrink-0 text-sm font-medium text-cobalt-600 underline underline-offset-2"
+          >
+            {campaign.ctaLabel ?? 'Voir'}
+          </Link>
+        ) : null}
+
+        {rules.dismissible === false ? null : (
+          <button
+            type="button"
+            onClick={() => {
+              trackCampaign(campaign.id, 'DISMISS');
+              setClosed(true);
+            }}
+            aria-label="Masquer cette annonce"
+            className="shrink-0 rounded-full p-1 text-ink-500 hover:bg-cobalt-100 hover:text-ink-900"
+          >
+            <X aria-hidden className="size-4" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -103,8 +192,17 @@ function TopBar({ campaign }: { campaign: Campaign }) {
  * le piégeage du focus, la fermeture par Échap et l'inertie de l'arrière-plan,
  * que toute réimplémentation manuelle rate.
  */
-function Popup({ campaign }: { campaign: Campaign }) {
-  const [open, setOpen] = useState(false);
+function Popup({
+  campaign,
+  isOpen,
+  onRequestOpen,
+  onClose,
+}: {
+  campaign: Campaign;
+  isOpen: boolean;
+  onRequestOpen: () => boolean;
+  onClose: () => void;
+}) {
   const rules = campaign.displayRules ?? {};
 
   /* Le déclencheur décide du moment. Les trois formes se ramènent à un même
@@ -113,9 +211,12 @@ function Popup({ campaign }: { campaign: Campaign }) {
     const trigger = rules.trigger ?? 'IMMEDIATE';
     let timer: ReturnType<typeof setTimeout> | undefined;
 
+    /* L'impression n'est remontée que si la fenêtre s'ouvre vraiment. Une
+       campagne qui perd la course contre une autre n'a été vue par personne,
+       et la compter fausserait le taux de clic autant que le plafonnement par
+       visiteur. */
     function show() {
-      setOpen(true);
-      trackCampaign(campaign.id, 'IMPRESSION');
+      if (onRequestOpen()) trackCampaign(campaign.id, 'IMPRESSION');
     }
 
     if (trigger === 'IMMEDIATE') {
@@ -156,14 +257,15 @@ function Popup({ campaign }: { campaign: Campaign }) {
 
     document.addEventListener('mouseout', onLeave);
     return () => document.removeEventListener('mouseout', onLeave);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign.id, rules.trigger, rules.delayMs, rules.scrollPercent]);
 
   function close() {
     trackCampaign(campaign.id, 'DISMISS');
-    setOpen(false);
+    onClose();
   }
 
-  if (!open) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-ink-900/40 p-4">
@@ -205,7 +307,7 @@ function Popup({ campaign }: { campaign: Campaign }) {
               href={campaign.ctaUrl}
               onClick={() => {
                 trackCampaign(campaign.id, 'CLICK');
-                setOpen(false);
+                onClose();
               }}
               className="inline-flex h-11 items-center rounded-xl bg-cobalt-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-cobalt-600"
             >
