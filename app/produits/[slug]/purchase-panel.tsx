@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Check, Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
@@ -16,6 +18,7 @@ import type { ProductDetail, ProductVariant } from '@/lib/data/catalog';
  * Server Component.
  */
 export function PurchasePanel({ product }: { product: ProductDetail }) {
+  const router = useRouter();
   const hasOptions = product.options.length > 0 && product.variants.length > 1;
 
   const [selection, setSelection] = useState<Record<string, string>>(() => {
@@ -59,6 +62,12 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
         body: JSON.stringify({ variantId: variant.id, quantity }),
       });
       setStatus('done');
+
+      /* Le compteur de l'en-tête vient du rendu serveur : sans ce
+         rafraîchissement il reste figé, et l'article semble ne pas avoir été
+         ajouté. C'est aussi le premier appel qui pose le cookie de panier dans
+         le navigateur — le serveur ne peut donc pas le voir avant. */
+      router.refresh();
     } catch (caught) {
       setStatus('error');
       setError(caught instanceof ApiError ? caught.message : 'Erreur inattendue. Réessayez.');
@@ -194,6 +203,21 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
       {status === 'error' ? (
         <p role="alert" className="text-sm text-danger">
           {error}
+        </p>
+      ) : null}
+
+      {/* Confirmation annoncée aux lecteurs d'écran et doublée d'un chemin
+          vers la suite : « Ajouté au panier » sur un bouton ne dit pas où
+          aller ensuite. */}
+      {status === 'done' ? (
+        <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-700">
+          <span className="text-success">Ajouté à votre panier.</span>
+          <Link href="/panier" className="font-medium text-cobalt-600 hover:underline">
+            Voir le panier
+          </Link>
+          <Link href="/commande" className="font-medium text-cobalt-600 hover:underline">
+            Commander
+          </Link>
         </p>
       ) : null}
 

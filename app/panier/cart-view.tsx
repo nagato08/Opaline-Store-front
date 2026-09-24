@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ImageOff, Loader2, Minus, Plus, ShoppingBag, Trash2, TriangleAlert } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import {
  * — aucune arithmétique monétaire hors formatage.
  */
 export function CartView({ initialCart }: { initialCart: Cart }) {
+  const router = useRouter();
   const [cart, setCart] = useState(initialCart);
   const [pendingItem, setPendingItem] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState('');
@@ -34,6 +36,11 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
     startTransition(async () => {
       try {
         setCart(await action());
+
+        /* Cette page tient son propre état, mais le compteur de l'en-tête vient
+           du rendu serveur : sans ce rafraîchissement, retirer un article le
+           laisse affiché dans la pastille du panier. */
+        router.refresh();
       } catch {
         // Le panier garde son dernier état connu ; l'API reste la source de
         // vérité au prochain chargement de page.
