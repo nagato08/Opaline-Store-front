@@ -3,32 +3,29 @@
 import { useState } from 'react';
 import { PackageOpen, Snowflake, Truck } from 'lucide-react';
 import { money } from '@/lib/format';
-import { removeCartItem, type Cart, type ShippingConstraint, type ShippingGroup } from '@/lib/data/cart';
+import type { Cart, ShippingConstraint, ShippingGroup } from '@/lib/data/cart';
 
 /**
  * Panier livrable, mais pas en une fois.
  *
  * Un meuble hors gabarit et une denrée réfrigérée n'ont aucun transporteur en
- * commun : le tunnel affichait donc une liste de modes vide, sans dire pourquoi,
- * et le client restait bloqué.
+ * commun : le tunnel affichait une liste de modes vide, sans dire pourquoi, et
+ * le client restait bloqué.
  *
- * Ce panneau nomme les deux groupes, montre ce qu'ils coûtent chacun, et
- * propose de n'en commander qu'un maintenant. Les articles écartés retournent
- * au catalogue, pas à la poubelle : ils se recommandent en deux clics juste
- * après, et on le dit.
- *
- * La vraie expédition multiple — une commande, deux colis, deux dates — viendra
- * ensuite ; elle demande que la commande porte plusieurs modes de livraison.
+ * Il choisit désormais un mode **par groupe** et commande le tout en une fois.
+ * La commande partira en deux colis, chacun avec sa date — c'est dit
+ * explicitement, parce qu'un client qui reçoit la moitié de sa commande sans
+ * avertissement croit à une erreur.
  */
 const LABELS: Record<ShippingConstraint, { titre: string; motif: string; icone: typeof Truck }> = {
   COLD_CHAIN: {
     titre: 'Produits frais',
-    motif: 'Ils voyagent en camion réfrigéré, qui ne prend pas les articles encombrants.',
+    motif: 'Camion réfrigéré, qui ne prend pas les articles encombrants.',
     icone: Snowflake,
   },
   OVERSIZED: {
     titre: 'Articles encombrants',
-    motif: 'Ils partent par un transporteur spécialisé, qui n’assure pas la chaîne du froid.',
+    motif: 'Transporteur spécialisé, qui n’assure pas la chaîne du froid.',
     icone: Truck,
   },
   STANDARD: {
@@ -38,101 +35,115 @@ const LABELS: Record<ShippingConstraint, { titre: string; motif: string; icone: 
   },
 };
 
+export type GroupSelection = Record<string, string>;
+
 export function SplitShippingNotice({
   cart,
   groups,
-  onCartChange,
+  selection,
+  onSelect,
 }: {
   cart: Cart;
   groups: ShippingGroup[];
-  /** Le tunnel recharge ses options après retrait : le panier a changé. */
-  onCartChange: (cart: Cart) => void;
+  /** Mode retenu par contrainte ; le parent en a besoin pour valider l'étape. */
+  selection: GroupSelection;
+  onSelect: (constraint: ShippingConstraint, methodId: string) => void;
 }) {
-  const [pending, setPending] = useState<ShippingConstraint | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
 
-  function linesOf(group: ShippingGroup) {
-    return cart.lines.filter((line) => group.cartItemIds.includes(line.cartItemId));
-  }
-
-  /** Retire les articles des *autres* groupes pour ne commander que celui-ci. */
-  async function keepOnly(group: ShippingGroup) {
-    setPending(group.constraint);
-
-    try {
-      const toRemove = groups
-        .filter((other) => other.constraint !== group.constraint)
-        .flatMap((other) => other.cartItemIds);
-
-      let updated = cart;
-      for (const itemId of toRemove) updated = await removeCartItem(itemId);
-
-      onCartChange(updated);
-    } finally {
-      setPending(null);
-    }
-  }
+  const total = groups.reduce((sum, group) => {
+    const chosen = group.options.find((option) => option.methodId === selection[group.constraint]);
+    return sum + (chosen?.priceCents ?? 0);
+  }, 0);
 
   return (
-    <div className="rounded-card border border-warning/30 bg-warning-soft p-5">
-      <h3 className="font-display text-lg font-semibold text-ink-900">
-        Votre commande demande deux livraisons
-      </h3>
-      <p className="mt-1.5 text-[15px] leading-relaxed text-ink-700">
-        Aucun transporteur ne prend à la fois vos articles encombrants et vos produits frais.
-        Choisissez ce que vous souhaitez recevoir en premier — le reste vous attendra au catalogue,
-        et se recommande en deux clics.
-      </p>
+    <div className="space-y-4">
+      <div className="rounded-card border border-warning/30 bg-warning-soft p-4">
+        <p className="text-[15px] leading-relaxed text-ink-800">
+          <span className="font-medium">Votre commande partira en {groups.length} colis.</span>{' '}
+          Aucun transporteur ne prend à la fois vos articles encombrants et vos produits frais.
+          Choisissez la livraison de chacun — vous ne passez qu’une seule commande.
+        </p>
+      </div>
 
-      <ul className="mt-5 space-y-3">
-        {groups.map((group) => {
-          const { titre, motif, icone: Icone } = LABELS[group.constraint];
-          const lines = linesOf(group);
-          const cheapest = group.options.reduce<number | null>(
-            (best, option) => (best === null || option.priceCents < best ? option.priceCents : best),
-            null,
-          );
+      {groups.map((group) => {
+        const { titre, motif, icone: Icone } = LABELS[group.constraint];
+        const lines = cart.lines.filter((line) => group.cartItemIds.includes(line.cartItemId));
+        const expanded = open === group.constraint;
 
-          return (
-            <li key={group.constraint} className="rounded-xl bg-white p-4">
-              <div className="flex items-start gap-3">
-                <Icone aria-hidden className="mt-0.5 size-5 shrink-0 text-ink-500" />
+        return (
+          <fieldset key={group.constraint} className="rounded-card border border-ink-200 p-4">
+            <legend className="flex items-center gap-2 px-1 text-sm font-medium text-ink-900">
+              <Icone aria-hidden className="size-4 text-ink-500" />
+              {titre}
+            </legend>
 
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-ink-900">{titre}</p>
-                  <p className="mt-0.5 text-sm text-ink-600">{motif}</p>
+            <p className="text-sm text-ink-600">{motif}</p>
 
-                  <ul className="mt-2 text-sm text-ink-700">
-                    {lines.map((line) => (
-                      <li key={line.cartItemId}>
-                        {line.name}
-                        <span className="text-ink-500"> × {line.quantity}</span>
-                      </li>
-                    ))}
-                  </ul>
+            {/* Le détail est replié : sur un panier de vingt articles, la
+                liste complète noierait le choix du mode, qui est l'objet de
+                l'écran. */}
+            <button
+              type="button"
+              onClick={() => setOpen(expanded ? null : group.constraint)}
+              aria-expanded={expanded}
+              className="mt-1 text-sm text-cobalt-600 hover:underline"
+            >
+              {lines.length} article{lines.length > 1 ? 's' : ''}
+              {expanded ? ' — masquer' : ' — voir'}
+            </button>
 
-                  {cheapest !== null ? (
-                    <p className="mt-2 text-sm text-ink-600">
-                      Livraison à partir de{' '}
-                      <span className="font-medium text-ink-900">
-                        {money(cheapest, cart.currencyCode)}
-                      </span>
-                    </p>
-                  ) : null}
-                </div>
+            {expanded ? (
+              <ul className="mt-2 text-sm text-ink-700">
+                {lines.map((line) => (
+                  <li key={line.cartItemId}>
+                    {line.name}
+                    <span className="text-ink-500"> × {line.quantity}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
 
-                <button
-                  type="button"
-                  onClick={() => keepOnly(group)}
-                  disabled={pending !== null}
-                  className="h-10 shrink-0 rounded-xl bg-ink-900 px-4 text-sm font-medium text-white transition-colors duration-150 hover:bg-ink-800 disabled:opacity-50"
+            <div className="mt-3 space-y-2">
+              {group.options.map((option) => (
+                <label
+                  key={option.methodId}
+                  className={
+                    selection[group.constraint] === option.methodId
+                      ? 'flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-ink-900 bg-clay-50 p-3'
+                      : 'flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-ink-200 p-3 hover:border-ink-400'
+                  }
                 >
-                  {pending === group.constraint ? 'Mise à jour…' : 'Commander ceci'}
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name={`livraison-${group.constraint}`}
+                      value={option.methodId}
+                      checked={selection[group.constraint] === option.methodId}
+                      onChange={() => onSelect(group.constraint, option.methodId)}
+                      className="size-4 accent-ink-900"
+                    />
+                    <span className="text-[15px] text-ink-900">{option.name}</span>
+                  </span>
+
+                  <span className="text-[15px] font-medium text-ink-900">
+                    {option.priceCents === 0
+                      ? 'Offerte'
+                      : money(option.priceCents, cart.currencyCode)}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        );
+      })}
+
+      <p className="text-right text-sm text-ink-600">
+        Livraison des {groups.length} colis :{' '}
+        <span className="font-medium text-ink-900">
+          {total === 0 ? 'offerte' : money(total, cart.currencyCode)}
+        </span>
+      </p>
     </div>
   );
 }

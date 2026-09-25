@@ -206,7 +206,9 @@ export async function placeOrder(
     shippingAddress: Address;
     billingAddress?: Address;
     billingSameAsShipping: boolean;
-    shippingMethodId: string;
+    /** L'un ou l'autre : un panier scindé porte un mode par groupe. */
+    shippingMethodId?: string;
+    shipments?: Array<{ constraint: ShippingConstraint; methodId: string; slotId?: string }>;
     paymentProvider: string;
     customerNote?: string;
     acceptsTerms: boolean;
@@ -251,4 +253,19 @@ export async function getShippingPlan(): Promise<ShippingPlan> {
        empêcher le tunnel de fonctionner avec la liste plate. */
     return { splitRequired: false, combined: [], groups: [] };
   }
+}
+
+/**
+ * Enregistre un mode de livraison par groupe.
+ *
+ * Remplace l'ensemble à chaque appel, comme l'API : un panier modifié
+ * entre-temps ne doit pas garder le choix d'un groupe disparu.
+ */
+export async function setCartShipments(
+  shipments: Array<{ constraint: ShippingConstraint; methodId: string; slotId?: string }>,
+): Promise<Cart> {
+  return apiFetch<Cart>('/cart/shipments', {
+    method: 'PATCH',
+    body: JSON.stringify({ shipments }),
+  });
 }

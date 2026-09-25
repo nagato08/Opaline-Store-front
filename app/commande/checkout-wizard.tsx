@@ -9,10 +9,14 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import { money } from '@/lib/format';
 import { ApiError } from '@/lib/api';
-import { SplitShippingNotice } from '@/components/order/split-shipping-notice';
+import {
+  SplitShippingNotice,
+  type GroupSelection,
+} from '@/components/order/split-shipping-notice';
 import {
   getShippingOptions,
   getShippingPlan,
+  setCartShipments,
   placeOrder,
   setContact,
   setShippingMethod,
@@ -68,6 +72,8 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
   /* Renseigné seulement quand aucun mode groupé n'existe : il porte alors
      l'explication et les groupes à expédier séparément. */
   const [plan, setPlan] = useState<ShippingPlan | null>(null);
+  /* Mode retenu par groupe, quand le panier part en plusieurs colis. */
+  const [groupSelection, setGroupSelection] = useState<GroupSelection>({});
   const [methodId, setMethodId] = useState(cart.shippingMethodId ?? '');
 
   const [paymentMethods] = useState(initialPaymentMethods);
@@ -97,7 +103,21 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
       /* Le plan n'est demandé que lorsqu'aucun mode ne sort : c'est le seul
          cas où il apprend quelque chose, et l'appeler systématiquement
          doublerait le calcul des totaux pour rien. */
-      setPlan(options.length === 0 ? await getShippingPlan() : null);
+      const found = options.length === 0 ? await getShippingPlan() : null;
+      setPlan(found);
+
+      /* Pré-sélection de l'option la moins chère par groupe : laisser trois
+         listes vides obligerait à cliquer partout avant de pouvoir avancer. */
+      if (found?.splitRequired) {
+        setGroupSelection(
+          Object.fromEntries(
+            found.groups.map((group) => [
+              group.constraint,
+              [...group.options].sort((a, b) => a.priceCents - b.priceCents)[0]?.methodId,
+            ]),
+          ),
+        );
+      }
 
       setStep('shipping');
     } catch (caught) {
@@ -107,14 +127,31 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
     }
   }
 
+  /* Chaque groupe doit avoir son mode ; à défaut, le mode unique suffit. */
+  const canContinueShipping = plan?.splitRequired
+    ? plan.groups.every((group) => Boolean(groupSelection[group.constraint]))
+    : Boolean(methodId);
+
   async function submitShipping(event: React.FormEvent) {
     event.preventDefault();
-    if (!methodId) return;
+
+    const split = plan?.splitRequired ? plan.groups : null;
+    if (split && split.some((group) => !groupSelection[group.constraint])) return;
+    if (!split && !methodId) return;
+
     setPending(true);
     setError('');
 
     try {
-      const updated = await setShippingMethod(methodId);
+      const updated = split
+        ? await setCartShipments(
+            split.map((group) => ({
+              constraint: group.constraint,
+              methodId: groupSelection[group.constraint],
+            })),
+          )
+        : await setShippingMethod(methodId);
+
       setCart(updated);
       setStep('payment');
     } catch (caught) {
@@ -135,7 +172,17 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
         email,
         shippingAddress: address,
         billingSameAsShipping: true,
-        shippingMethodId: methodId,
+        /* L'un ou l'autre, jamais les deux : l'API refuse de facturer la
+           livraison en double, et envoyer un mode résiduel ferait payer un
+           colis fantôme. */
+        ...(plan?.splitRequired
+          ? {
+              shipments: plan.groups.map((group) => ({
+                constraint: group.constraint,
+                methodId: groupSelection[group.constraint],
+              })),
+            }
+          : { shippingMethodId: methodId }),
         paymentProvider,
         acceptsTerms,
       });
@@ -275,17 +322,10 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
               <SplitShippingNotice
                 cart={cart}
                 groups={plan.groups}
-                onCartChange={async (updated) => {
-                  setCart(updated);
-
-                  /* Le panier a changé : les modes disponibles aussi. On
-                     recharge plutôt que de deviner, l'API restant la seule
-                     source de vérité sur la livraison. */
-                  const options = await getShippingOptions();
-                  setQuotes(options);
-                  if (options.length > 0) setMethodId(options[0].methodId);
-                  setPlan(options.length === 0 ? await getShippingPlan() : null);
-                }}
+                selection={groupSelection}
+                onSelect={(constraint, chosen) =>
+                  setGroupSelection((current) => ({ ...current, [constraint]: chosen }))
+                }
               />
             ) : quotes.length === 0 ? (
               <p className="flex items-center gap-2 rounded-card bg-warning-soft px-4 py-3 text-sm text-warning">
@@ -335,7 +375,16 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
             <ErrorNotice error={error} />
 
             <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" size="lg" loading={pending} disabled={pending || !methodId} className="px-10">
+              {/* Un panier scindé n'a pas de `methodId` : sans cette
+                  distinction le bouton restait désactivé pour toujours, et le
+                  client ne pouvait pas avancer malgré ses choix. */}
+              <Button
+                type="submit"
+                size="lg"
+                loading={pending}
+                disabled={pending || !canContinueShipping}
+                className="px-10"
+              >
                 Continuer vers le paiement
               </Button>
               <button
