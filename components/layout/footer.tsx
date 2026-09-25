@@ -18,6 +18,7 @@ const columns = [
   {
     title: 'Aide',
     links: [
+      { href: '/faq', label: 'Questions fréquentes' },
       { href: '/suivi-commande', label: 'Suivre ma commande' },
       { href: '/livraison', label: 'Livraison' },
       { href: '/retours', label: 'Retours et remboursements' },
