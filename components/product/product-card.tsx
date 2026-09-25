@@ -1,3 +1,4 @@
+import { ViewTransition } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ImageOff, Star } from 'lucide-react';
@@ -51,43 +52,49 @@ export function ProductCard({
 
   return (
     <article className="group relative flex flex-col">
-      <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
-        {product.imageUrl ? (
-          <Image
-            src={product.imageUrl}
-            alt={product.imageAlt}
-            fill
-            // Dimensions déclarées par `fill` + conteneur au ratio fixe : la
-            // grille ne saute pas pendant le chargement.
-            sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
-            priority={priority}
-            className={cn(
-              'object-cover transition-transform duration-300',
-              // Un léger rapprochement au survol, jamais de déplacement : la
-              // carte ne doit pas bouger sous le curseur.
-              'group-hover:scale-[1.03]',
-              !product.isAvailable && 'opacity-60',
-            )}
-          />
-        ) : (
-          <div aria-hidden className="grid size-full place-items-center">
-            <ImageOff className="size-8 text-ink-400" />
-          </div>
-        )}
+      {/* Nommée pour que la vignette devienne la photo de la fiche plutôt
+          que de disparaître. `share`/`default="none"` limitent l'animation à
+          cette paire : sans eux, chaque image nommée se fondrait à chaque
+          navigation, y compris celles qui ne mènent nulle part. */}
+      <ViewTransition name={`produit-${product.slug}`} share="morph" default="none">
+        <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.imageAlt}
+              fill
+              // Dimensions déclarées par `fill` + conteneur au ratio fixe : la
+              // grille ne saute pas pendant le chargement.
+              sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
+              priority={priority}
+              className={cn(
+                'object-cover transition-transform duration-300',
+                // Un léger rapprochement au survol, jamais de déplacement : la
+                // carte ne doit pas bouger sous le curseur.
+                'group-hover:scale-[1.03]',
+                !product.isAvailable && 'opacity-60',
+              )}
+            />
+          ) : (
+            <div aria-hidden className="grid size-full place-items-center">
+              <ImageOff className="size-8 text-ink-400" />
+            </div>
+          )}
 
-        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
-          {hasDiscount ? (
-            <span className="rounded-full bg-saffron px-2.5 py-1 text-xs font-semibold text-white">
-              {discountRate(product.priceCents, product.compareAtCents as number)}
-            </span>
-          ) : null}
-          {!product.isAvailable ? (
-            <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-medium text-white">
-              Épuisé
-            </span>
-          ) : null}
+          <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+            {hasDiscount ? (
+              <span className="rounded-full bg-saffron px-2.5 py-1 text-xs font-semibold text-white">
+                {discountRate(product.priceCents, product.compareAtCents as number)}
+              </span>
+            ) : null}
+            {!product.isAvailable ? (
+              <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-medium text-white">
+                Épuisé
+              </span>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </ViewTransition>
 
       <div className="mt-3.5 flex flex-1 flex-col">
         {product.brand ? (

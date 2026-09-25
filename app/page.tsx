@@ -15,8 +15,10 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { ButtonLink } from '@/components/ui/button';
-import { ProductCard } from '@/components/product/product-card';
-import { getCategoryTree, listHomeReviews, listProducts } from '@/lib/data/catalog';
+import { ProductRail } from '@/components/catalog/product-rail';
+import { BrandMarquee } from '@/components/marketing/brand-marquee';
+import { TiltFrame } from '@/components/marketing/tilt-frame';
+import { getCategoryTree, listBrands, listHomeReviews, listProducts } from '@/lib/data/catalog';
 import { getCart } from '@/lib/data/cart';
 
 /**
@@ -59,9 +61,10 @@ const reasons = [
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [categories, { products }, cart] = await Promise.all([
+  const [categories, { products }, brands, cart] = await Promise.all([
     getCategoryTree(),
     listProducts({ sort: 'rating', perPage: 12 }),
+    listBrands(),
     getCart(),
   ]);
 
@@ -111,30 +114,32 @@ export default async function HomePage() {
             </div>
 
             <div className="lg:col-span-3">
-              <div className="ratio-wide relative overflow-hidden rounded-card bg-clay-100">
-                {hero?.imageUrl ? (
-                  <Image
-                    src={hero.imageUrl}
-                    alt={hero.imageAlt}
-                    fill
-                    sizes="(min-width: 1024px) 60vw, 100vw"
-                    // Image de première vue : chargée en priorité, c'est elle qui
-                    // détermine la vitesse perçue de la page.
-                    priority
-                    className="object-cover"
-                  />
-                ) : (
-                  <div aria-hidden className="grid size-full place-items-center">
-                    <ImageOff className="size-10 text-ink-400" />
-                  </div>
-                )}
-              </div>
+              <TiltFrame>
+                <div className="ratio-wide relative overflow-hidden rounded-card bg-clay-100 shadow-card">
+                  {hero?.imageUrl ? (
+                    <Image
+                      src={hero.imageUrl}
+                      alt={hero.imageAlt}
+                      fill
+                      sizes="(min-width: 1024px) 60vw, 100vw"
+                      // Image de première vue : chargée en priorité, c'est elle qui
+                      // détermine la vitesse perçue de la page.
+                      priority
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div aria-hidden className="grid size-full place-items-center">
+                      <ImageOff className="size-10 text-ink-400" />
+                    </div>
+                  )}
+                </div>
+              </TiltFrame>
             </div>
           </div>
         </section>
 
         {/* --- Réassurance -------------------------------------------------- */}
-        <section aria-label="Nos engagements" className="mx-auto mt-14 max-w-7xl px-4 lg:px-8">
+        <section aria-label="Nos engagements" className="reveal mx-auto mt-14 max-w-7xl px-4 lg:px-8">
           <ul className="grid gap-x-6 gap-y-5 border-y border-ink-200/70 py-6 sm:grid-cols-2 lg:grid-cols-4">
             {guarantees.map((item) => (
               <li key={item.title} className="flex items-start gap-3">
@@ -154,7 +159,7 @@ export default async function HomePage() {
             Trois entrées seulement : le catalogue est généraliste, mais une
             page d'accueil qui propose douze portes n'en fait ouvrir aucune. */}
         {categories.length > 0 ? (
-          <section aria-labelledby="rayons" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+          <section aria-labelledby="rayons" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
             <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
               Nos rayons
             </h2>
@@ -200,7 +205,7 @@ export default async function HomePage() {
 
         {/* --- Sélection ----------------------------------------------------- */}
         {rest.length > 0 ? (
-          <section aria-labelledby="selection" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+          <section aria-labelledby="selection" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h2 id="selection" className="text-2xl font-bold text-ink-900 sm:text-3xl">
@@ -220,20 +225,23 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-9 md:grid-cols-3 xl:grid-cols-4">
-              {rest.map((product, index) => (
-                <ProductCard key={product.id} product={product} priority={index < 2} />
-              ))}
+            {/* En rail plutôt qu'en grille : douze articles empilés sur quatre
+                rangées repoussaient le reste de la page à trois écrans de
+                défilement. */}
+            <div className="mt-8">
+              <ProductRail products={rest} />
             </div>
           </section>
         ) : null}
+
+        <BrandMarquee brands={brands} />
 
         {/* --- Pourquoi cette boutique ---------------------------------------
             Trois faits, pas des adjectifs : c'est ce qui différencie
             réellement un propriétaire unique d'une place de marché, et c'est
             la question qu'un visiteur qui ne connaît pas l'enseigne se pose
             avant d'ajouter au panier. */}
-        <section aria-labelledby="pourquoi" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+        <section aria-labelledby="pourquoi" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
           <h2 id="pourquoi" className="text-2xl font-bold text-ink-900 sm:text-3xl">
             Pourquoi ici plutôt qu’ailleurs
           </h2>
@@ -263,7 +271,7 @@ export default async function HomePage() {
           if (!grocery) return null;
 
           return (
-            <section className="mt-20 bg-clay-100">
+            <section className="reveal mt-20 bg-clay-100">
               <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8">
                 <div>
                   <p className="text-sm font-medium tracking-wide text-ink-600 uppercase">
@@ -306,7 +314,7 @@ export default async function HomePage() {
             Des témoignages inventés seraient une pratique commerciale
             trompeuse, et c'est exactement ce qui se trouvait ici. */}
         {homeReviews.length > 0 ? (
-          <section aria-labelledby="avis" className="mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+          <section aria-labelledby="avis" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
             <h2 id="avis" className="text-2xl font-bold text-ink-900 sm:text-3xl">
               Ce qu’en disent nos clients
             </h2>
@@ -354,7 +362,7 @@ export default async function HomePage() {
             Bande sombre : elle marque une rupture volontaire avec le reste de
             la page, pour signaler que ce n'est plus un rayon mais un dernier
             geste avant de partir. */}
-        <section className="mt-20 bg-ink-900">
+        <section className="reveal mt-20 bg-ink-900">
           <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
             <p className="text-sm font-medium tracking-wide text-white/60 uppercase">
               Lettre d’information

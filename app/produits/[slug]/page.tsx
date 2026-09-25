@@ -1,3 +1,4 @@
+import { ViewTransition } from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +11,7 @@ import { getCart } from '@/lib/data/cart';
 import { Reviews } from '@/components/product/reviews';
 import { PurchasePanel } from './purchase-panel';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { ProductZoom } from '@/components/product/product-zoom';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,22 +67,22 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                 courte que la photo, et la laisser défiler seule ouvrait un
                 vide de quatre cents pixels à droite. */}
             <div className="lg:sticky lg:top-6 lg:self-start">
-              <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
-                {product.media[0]?.variants ? (
-                  <Image
-                    src={product.media[0].variants.zoom}
-                    alt={product.media[0].alt}
-                    fill
-                    sizes="(min-width: 1024px) 45vw, 100vw"
-                    priority
-                    className="object-cover"
-                  />
-                ) : (
-                  <div aria-hidden className="grid size-full place-items-center">
-                    <ImageOff className="size-10 text-ink-400" />
-                  </div>
-                )}
-              </div>
+              {/* Même nom que la vignette de la grille : c'est elle qui grandit
+                  jusqu'ici pendant la navigation. */}
+              <ViewTransition name={`produit-${product.slug}`} share="morph" default="none">
+                <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
+                  {product.media[0]?.variants ? (
+                    <ProductZoom
+                      src={product.media[0].variants.zoom}
+                      alt={product.media[0].alt}
+                    />
+                  ) : (
+                    <div aria-hidden className="grid size-full place-items-center">
+                      <ImageOff className="size-10 text-ink-400" />
+                    </div>
+                  )}
+                </div>
+              </ViewTransition>
 
               {product.media.length > 1 ? (
                 <div className="mt-3 grid grid-cols-5 gap-3">

@@ -155,6 +155,121 @@
   .animate-rise {
     animation: rise 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
+
+  /* --- Révélation au défilement --------------------------------------
+   *
+   * Pilotée par la position dans la fenêtre (`animation-timeline: view()`),
+   * pas par un observateur en JavaScript : le navigateur l'exécute sur le
+   * fil de composition, elle suit le doigt au pixel près et ne coûte rien
+   * au fil principal pendant que la page charge ses images.
+   *
+   * L'état masqué n'est posé que si la fonctionnalité existe : sans
+   * `@supports`, un navigateur sans timeline de défilement laisserait la
+   * page entière à `opacity: 0`, c'est-à-dire blanche. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        animation: rise linear both;
+        animation-timeline: view();
+        /* Commence quand l'élément entre par le bas, finit quand il a
+         * parcouru un quart de la fenêtre : la révélation est terminée
+         * avant qu'on ait eu le temps de lire, jamais un texte qui
+         * s'éclaircit sous les yeux. */
+        animation-range: entry 0% cover 25%;
+      }
+    }
+  }
+
+  /* --- Rail horizontal ------------------------------------------------
+   *
+   * Défilement à ancrage : chaque carte s'aligne au bord gauche, et le
+   * geste reste celui du système — inertie, barre de défilement, molette
+   * horizontale — plutôt qu'un carrousel reconstruit en JavaScript. */
+  .rail {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail > * {
+    scroll-snap-align: start;
+  }
+
+  /* --- Inclinaison au pointeur ----------------------------------------
+   *
+   * Les deux variables sont écrites par le composant au déplacement de la
+   * souris. La perspective reste longue (1200px) : au-delà, l'effet cesse
+   * d'être une profondeur et devient une déformation. */
+  .tilt {
+    transform: perspective(1200px) rotateX(var(--tilt-x, 0deg))
+      rotateY(var(--tilt-y, 0deg));
+    transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+
+  @media (prefers-reduced-motion: reduce), (pointer: coarse) {
+    .tilt {
+      transform: none;
+    }
+  }
+
+  /* --- Bandeau défilant ------------------------------------------------
+   *
+   * Translate d'exactement la moitié de la piste, qui contient la liste en
+   * double : à la fin du cycle, la seconde copie occupe la position de la
+   * première et le raccord ne se voit pas.
+   *
+   * Lent — trente secondes le tour — parce qu'un bandeau rapide attire
+   * l'œil en permanence et concurrence le contenu qu'on veut faire lire.
+   * Il s'arrête au survol, pour laisser le temps de viser un nom. */
+  .marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .marquee:hover,
+  .marquee:focus-within {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      animation: none;
+    }
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* --- Transitions de vue ----------------------------------------------
+ *
+ * L'image d'un produit garde son identité d'un écran à l'autre : la
+ * vignette de la grille devient la photo de la fiche, au lieu de
+ * disparaître pendant qu'une autre paraît. C'est la continuité qui dit au
+ * visiteur qu'il a ouvert le bon article.
+ *
+ * Le flou de mi-parcours masque l'interpolation pixel à pixel entre deux
+ * cadrages différents. */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+
+@keyframes via-blur {
+  30% {
+    filter: blur(3px);
+  }
 }
 
 @keyframes rise {
