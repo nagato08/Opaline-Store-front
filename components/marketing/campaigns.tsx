@@ -44,9 +44,15 @@ export function Campaigns() {
   const notices = campaigns.filter(
     (campaign) => campaign.type === 'BANNER' || campaign.type === 'IN_PAGE_NOTICE',
   );
-  const popups = campaigns.filter(
-    (campaign) => campaign.type === 'POPUP' || campaign.type === 'INTERSTITIAL',
-  );
+  /* Pas de fenêtre modale dans le tunnel de paiement. Une promotion qui
+     s'interpose entre le client et son règlement le renvoie au catalogue
+     au pire moment : constaté en production sur l'étape de livraison, où
+     la fenêtre recouvrait le choix des modes. Les bandeaux, eux, restent —
+     ils ne bloquent rien. */
+  const inCheckout = pathname === '/commande';
+  const popups = inCheckout
+    ? []
+    : campaigns.filter((campaign) => campaign.type === 'POPUP' || campaign.type === 'INTERSTITIAL');
 
   return (
     <>
