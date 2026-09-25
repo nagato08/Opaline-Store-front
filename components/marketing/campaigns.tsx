@@ -40,10 +40,20 @@ export function Campaigns() {
      décroissante vient de l'API et ne départage que les égalités. */
   const [openPopup, setOpenPopup] = useState<string | null>(null);
 
-  const bar = campaigns.find((campaign) => campaign.type === 'TOP_BAR');
-  const notices = campaigns.filter(
-    (campaign) => campaign.type === 'BANNER' || campaign.type === 'IN_PAGE_NOTICE',
+  /* Une seule annonce coiffe la page.
+     Empilées, une barre haute et deux bandeaux poussaient l'enseigne à 223 px
+     du haut sur téléphone — le quart de l'écran avant de savoir sur quel site
+     on est. Les campagnes arrivent déjà triées par priorité décroissante :
+     celle que le commerçant a placée en tête gagne, quel que soit son type. */
+  const leading = campaigns.find(
+    (campaign) =>
+      campaign.type === 'TOP_BAR' ||
+      campaign.type === 'BANNER' ||
+      campaign.type === 'IN_PAGE_NOTICE',
   );
+
+  const bar = leading?.type === 'TOP_BAR' ? leading : undefined;
+  const notices = leading && leading.type !== 'TOP_BAR' ? [leading] : [];
   /* Pas de fenêtre modale dans le tunnel de paiement. Une promotion qui
      s'interpose entre le client et son règlement le renvoie au catalogue
      au pire moment : constaté en production sur l'étape de livraison, où

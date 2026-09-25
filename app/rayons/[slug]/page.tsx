@@ -5,10 +5,14 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { ProductCard } from '@/components/product/product-card';
 import { cn } from '@/lib/cn';
-import { getCategoryTree, listProducts } from '@/lib/data/catalog';
+import { getCategoryTree, listBrands, listProducts, type ProductSort } from '@/lib/data/catalog';
+import { FilterBar } from '@/components/catalog/filter-bar';
 import { getCart } from '@/lib/data/cart';
 
 export const dynamic = 'force-dynamic';
+
+/** Tris acceptés dans l'URL ; tout le reste est ignoré. */
+const SORTS: ProductSort[] = ['newest', 'price_asc', 'price_desc', 'name_asc', 'best_selling', 'rating'];
 
 function findCategory(tree: Awaited<ReturnType<typeof getCategoryTree>>, slug: string) {
   for (const category of tree) {
@@ -40,19 +44,44 @@ export default async function DepartmentPage({
   const activeSlug = typeof query.rayon === 'string' ? query.rayon : undefined;
   const active = department.children.find((sub) => sub.slug === activeSlug);
 
-  const [{ products }, departmentTotal, childCounts, cart] = await Promise.all([
-    listProducts({ categorySlug: active?.slug ?? department.slug, perPage: 48 }),
-    listProducts({ categorySlug: department.slug, perPage: 1 }).then((page) => page.total),
-    Promise.all(
-      department.children.map((child) =>
-        listProducts({ categorySlug: child.slug, perPage: 1 }).then((page) => [child.slug, page.total] as const),
+  /* Les filtres arrivent par l'URL, donc sous forme de texte non vérifié :
+     chacun est ramené à une valeur que l'API accepte, sinon une adresse
+     bricolée à la main provoquerait une 400 au lieu d'une page. */
+  const selectedBrands = [query.marque ?? []].flat().filter((value) => typeof value === 'string');
+  const inStockOnly = query.stock === '1';
+  const sort = SORTS.includes(query.tri as ProductSort) ? (query.tri as ProductSort) : undefined;
+
+  const listedSlug = active?.slug ?? department.slug;
+
+  const [{ products, total: matching }, departmentTotal, childCounts, allBrands, rayonProducts, cart] =
+    await Promise.all([
+      listProducts({
+        categorySlug: listedSlug,
+        perPage: 48,
+        sort,
+        brandIds: selectedBrands.length > 0 ? selectedBrands : undefined,
+        inStockOnly,
+      }),
+      listProducts({ categorySlug: department.slug, perPage: 1 }).then((page) => page.total),
+      Promise.all(
+        department.children.map((child) =>
+          listProducts({ categorySlug: child.slug, perPage: 1 }).then((page) => [child.slug, page.total] as const),
+        ),
       ),
-    ),
-    getCart(),
-  ]);
+      listBrands(),
+      /* Sans filtre : sert à connaître les marques présentes dans le rayon.
+         Les tirer de la grille filtrée ferait disparaître une marque dès
+         qu'on en sélectionne une autre, et il n'y aurait plus moyen de
+         revenir en arrière. */
+      listProducts({ categorySlug: listedSlug, perPage: 48 }),
+      getCart(),
+    ]);
 
   const total = departmentTotal;
   const counts = Object.fromEntries(childCounts);
+
+  const presentNames = new Set(rayonProducts.products.map((product) => product.brand));
+  const brands = allBrands.filter((brand) => presentNames.has(brand.name));
 
   return (
     <>
@@ -113,6 +142,8 @@ export default async function DepartmentPage({
               </div>
             </div>
           ) : null}
+
+          <FilterBar brands={brands} resultCount={matching} />
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8">

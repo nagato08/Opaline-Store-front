@@ -94,6 +94,17 @@
      * champ et casse la mise en page du tunnel d'achat. */
     font-size: 16px;
     line-height: 1.6;
+    /* Colonne pleine hauteur : sans elle, une page courte — panier vide,
+     * confirmation, 404 — laissait une bande de fond sous le pied de page,
+     * qui semblait alors flotter au milieu de l'écran. `main` s'étire, le
+     * pied de page reste en bas. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  main {
+    flex: 1;
   }
 
   h1,

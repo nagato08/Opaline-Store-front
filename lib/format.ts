@@ -34,6 +34,23 @@ export function discountRate(priceCents: number, compareAtCents: number): string
   return `-${Math.round((1 - priceCents / compareAtCents) * 100)} %`;
 }
 
+/**
+ * Pays en toutes lettres : « CN » devient « Chine ».
+ *
+ * L'API stocke le code ISO à deux lettres, imposé par les transporteurs et
+ * les douanes ; le montrer tel quel sur une fiche demande au client de le
+ * déchiffrer. Une valeur déjà écrite en toutes lettres ressort inchangée.
+ */
+export function countryName(code: string, locale = 'fr-FR'): string {
+  if (code.length !== 2) return code;
+
+  try {
+    return new Intl.DisplayNames([locale], { type: 'region' }).of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 /** Date courte : « 18 août 2026 ». */
 export function shortDate(value: string | Date, locale = 'fr-FR'): string {
   return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(

@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ImageOff, Snowflake, Star } from 'lucide-react';
+import { ImageOff, RotateCcw, ShieldCheck, Snowflake, Star, Truck } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { number } from '@/lib/format';
+import { countryName, number } from '@/lib/format';
 import { getCategoryTree, getProductBySlug, listReviews } from '@/lib/data/catalog';
 import { getCart } from '@/lib/data/cart';
 import { Reviews } from '@/components/product/reviews';
@@ -61,7 +61,10 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
         <section className="mx-auto mt-6 max-w-7xl px-4 pb-16 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
             {/* --- Galerie ------------------------------------------------- */}
-            <div>
+            {/* Collante à partir du grand écran : la colonne d'achat est plus
+                courte que la photo, et la laisser défiler seule ouvrait un
+                vide de quatre cents pixels à droite. */}
+            <div className="lg:sticky lg:top-6 lg:self-start">
               <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
                 {product.media[0]?.variants ? (
                   <Image
@@ -133,6 +136,34 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                 productSlug={product.slug}
               />
 
+              {/* Les mêmes garanties que la page d'accueil, rappelées là où la
+                  décision se prend. Les répéter ici n'est pas une redite : au
+                  moment d'ajouter au panier, personne ne remonte vérifier. */}
+              <ul className="mt-8 grid gap-3 border-t border-ink-200/70 pt-6 text-sm text-ink-700">
+                <li className="flex items-center gap-2.5">
+                  <Truck aria-hidden className="size-4 shrink-0 text-ink-500" />
+                  Livraison offerte dès 60 € en France métropolitaine
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <RotateCcw aria-hidden className="size-4 shrink-0 text-ink-500" />
+                  Retour sous 14 jours, sans justification
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <ShieldCheck aria-hidden className="size-4 shrink-0 text-ink-500" />
+                  Paiement sécurisé, aucune donnée bancaire conservée
+                </li>
+              </ul>
+
+              {/* La description accompagne l'achat plutôt que de le suivre :
+                  reléguée sous la photo, elle laissait cette colonne à moitié
+                  vide et se lisait après le bouton qu'elle devait justifier. */}
+              {product.description ? (
+                <div className="mt-10 border-t border-ink-200/70 pt-8">
+                  <h2 className="font-display text-xl font-semibold text-ink-900">Description</h2>
+                  <p className="mt-3 whitespace-pre-line text-ink-700">{product.description}</p>
+                </div>
+              ) : null}
+
               {food ? (
                 <div className="mt-10 space-y-4 border-t border-ink-200/70 pt-8">
                   <h2 className="font-display text-lg font-semibold text-ink-900">
@@ -170,7 +201,7 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                   {food.originCountry ? (
                     <p className="text-sm text-ink-700">
                       <span className="font-medium text-ink-900">Origine : </span>
-                      {food.originCountry}
+                      {countryName(food.originCountry)}
                     </p>
                   ) : null}
                 </div>
@@ -182,19 +213,12 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                     <p>Garantie {product.compliance.warrantyMonths} mois.</p>
                   ) : null}
                   {product.compliance.countryOfOrigin ? (
-                    <p>Origine : {product.compliance.countryOfOrigin}</p>
+                    <p>Origine : {countryName(product.compliance.countryOfOrigin)}</p>
                   ) : null}
                 </div>
               ) : null}
             </div>
           </div>
-
-          {product.description ? (
-            <div className="mt-16 max-w-3xl border-t border-ink-200/70 pt-8">
-              <h2 className="font-display text-xl font-semibold text-ink-900">Description</h2>
-              <p className="mt-3 whitespace-pre-line text-ink-700">{product.description}</p>
-            </div>
-          ) : null}
 
           <Reviews summary={reviews} />
         </section>

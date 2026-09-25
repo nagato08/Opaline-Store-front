@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/cn';
 import type { Category } from '@/lib/data/catalog';
 
-/** Liens simples, sans sous-rayons. */
+/**
+ * Liens simples, sans sous-rayons.
+ *
+ * `accent` ne pose plus qu'une graisse : le safran est la couleur du prix
+ * réduit, et l'étendre à un lien de navigation le rendait illisible comme
+ * signal — quatre rôles pour une seule teinte, elle n'en portait plus aucun.
+ */
 const plainLinks = [
   { href: '/nouveautes', label: 'Nouveautés' },
   { href: '/promotions', label: 'Promotions', accent: true },
@@ -186,7 +192,7 @@ export function HeaderClient({
                     className={cn(
                       'rounded-control px-3 py-2 text-[15px] transition-colors duration-150',
                       item.accent
-                        ? 'font-medium text-saffron hover:bg-saffron-soft'
+                        ? 'font-medium text-ink-900 hover:bg-ink-100'
                         : 'text-ink-700 hover:bg-ink-100 hover:text-ink-900',
                     )}
                   >
@@ -315,7 +321,7 @@ export function HeaderClient({
                   className={cn(
                     'block rounded-control px-3 py-3 text-base transition-colors duration-150',
                     item.accent
-                      ? 'font-medium text-saffron hover:bg-saffron-soft'
+                      ? 'font-medium text-ink-900 hover:bg-ink-100'
                       : 'text-ink-800 hover:bg-ink-100',
                   )}
                 >

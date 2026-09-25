@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Check, Loader2, ShieldAlert } from 'lucide-react';
@@ -46,6 +46,24 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
   const [quantity, setQuantity] = useState<number>(variant?.measure?.step ?? 1);
   const [status, setStatus] = useState<'idle' | 'pending' | 'done' | 'error'>('idle');
   const [error, setError] = useState('');
+
+  /* Suit le bouton d'achat pour savoir s'il est encore à l'écran. Un
+     observateur plutôt qu'un écouteur de défilement : la position se lit sans
+     forcer de calcul de mise en page à chaque pixel parcouru. */
+  const buyRef = useRef<HTMLButtonElement>(null);
+  const [buyOutOfView, setBuyOutOfView] = useState(false);
+
+  useEffect(() => {
+    const target = buyRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setBuyOutOfView(!entry.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px' },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const step = variant?.measure?.step ?? 1;
   const min = variant?.measure?.min ?? step;
@@ -184,6 +202,7 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
       </div>
 
       <Button
+        ref={buyRef}
         size="lg"
         className="w-full sm:w-auto sm:px-10"
         disabled={!variant?.stock.isAvailable || status === 'pending'}
@@ -199,6 +218,33 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
           'Ajouter au panier'
         )}
       </Button>
+
+      {/* Rappel d'achat sur téléphone.
+          La fiche fait trois écrans de haut : passé la description, le bouton
+          était loin derrière et il fallait remonter pour acheter. La barre ne
+          paraît que lorsque le vrai bouton est sorti du champ, pour ne jamais
+          en afficher deux à la fois. */}
+      {buyOutOfView && variant?.price ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink-200 bg-surface px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-pop sm:hidden">
+          <div className="flex items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-ink-600">{product.name}</p>
+              <p data-price className="text-lg font-semibold text-ink-900">
+                {money(variant.price.amountCents, variant.price.currencyCode)}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="shrink-0"
+              disabled={!variant.stock.isAvailable || status === 'pending'}
+              onClick={addToCart}
+            >
+              {status === 'pending' ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
+              {status === 'done' ? 'Ajouté' : 'Ajouter'}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       {status === 'error' ? (
         <p role="alert" className="text-sm text-danger">
@@ -222,7 +268,7 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
       ) : null}
 
       {variant ? (
-        <p className="font-mono text-xs text-ink-400" translate="no">
+        <p className="font-mono text-xs text-ink-500" translate="no">
           Référence {variant.sku}
           {variant.stock.isAvailable ? ` · ${number(variant.stock.available)} en stock` : ''}
         </p>

@@ -68,16 +68,53 @@ function toSummary(card: ApiProductCard): ProductSummary {
 
 export type ProductListResult = { products: ProductSummary[]; total: number };
 
+export type Brand = { id: string; name: string; slug: string };
+
+/**
+ * Marques du catalogue.
+ *
+ * Les cartes produit ne portent que le nom de la marque, et le filtre de
+ * l'API attend son identifiant : c'est cette liste qui fait le pont entre les
+ * deux.
+ */
+export async function listBrands(): Promise<Brand[]> {
+  try {
+    const brands = await apiFetch<Array<{ id: string; name: string; slug: string }>>(
+      '/catalog/brands',
+    );
+    return brands.map((brand) => ({ id: brand.id, name: brand.name, slug: brand.slug }));
+  } catch {
+    /* Une liste de marques indisponible retire le filtre, elle ne doit pas
+       emporter le rayon avec elle. */
+    return [];
+  }
+}
+
+export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'name_asc' | 'best_selling' | 'rating';
+
 export async function listProducts(params: {
   categorySlug?: string;
   search?: string;
-  sort?: 'newest' | 'price_asc' | 'price_desc' | 'name_asc' | 'best_selling' | 'rating';
+  sort?: ProductSort;
+  /** Filtres du rayon, tous portés par `ProductQueryDto` côté API. */
+  brandIds?: string[];
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  inStockOnly?: boolean;
   perPage?: number;
 }): Promise<ProductListResult> {
   const query = new URLSearchParams();
   if (params.categorySlug) query.set('categorySlug', params.categorySlug);
   if (params.search) query.set('search', params.search);
   if (params.sort) query.set('sort', params.sort);
+  /* Répété plutôt que joint par des virgules : `@IsArray()` attend
+     `brandIds=a&brandIds=b`. Une valeur unique arrive alors comme une chaîne,
+     que le DTO normalise en tableau — sans quoi cocher une seule marque
+     répondait « brandIds must be an array ». */
+  for (const brandId of params.brandIds ?? []) query.append('brandIds', brandId);
+  if (params.minPriceCents !== undefined) query.set('minPriceCents', String(params.minPriceCents));
+  if (params.maxPriceCents !== undefined) query.set('maxPriceCents', String(params.maxPriceCents));
+  if (params.inStockOnly) query.set('inStockOnly', 'true');
   query.set('perPage', String(params.perPage ?? 24));
 
   const page = await apiFetch<{ items: ApiProductCard[]; meta: { total: number } }>(

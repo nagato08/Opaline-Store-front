@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ImageOff } from 'lucide-react';
+import { ImageOff, Star } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { discountRate, money, unitPrice } from '@/lib/format';
 
@@ -18,7 +18,11 @@ export type ProductSummary = {
   isAvailable: boolean;
   /** Renseigné sur les denrées : impose l'affichage du prix au kilo ou au litre. */
   measure?: { quantity: number; unit: string };
-  /** Éco-participation, à afficher séparément sur mobilier et électronique. */
+  /**
+   * Éco-participation. Elle n'est plus affichée sur la carte : une quatrième
+   * ligne sous chaque prix noyait la grille pour une mention dont l'obligation
+   * porte sur la page du produit, où elle figure toujours.
+   */
   ecoTaxCents?: number;
   ratingAvg?: number;
   ratingCount?: number;
@@ -138,38 +142,40 @@ export function ProductCard({
             </p>
           ) : null}
 
-          {product.ecoTaxCents ? (
-            <p className="mt-0.5 text-xs text-ink-500">
-              dont {money(product.ecoTaxCents, product.currencyCode)} d’éco-participation
-            </p>
-          ) : null}
         </div>
       </div>
     </article>
   );
 }
 
-/** Note en étoiles. Décorative : le texte équivalent est en `sr-only`. */
+/**
+ * Note en étoiles. Décorative : le texte équivalent est en `sr-only`.
+ *
+ * Deux rangées superposées, la dorée rognée à la largeur de la note, plutôt
+ * qu'un dégradé SVG par étoile. Le dégradé demandait un `id`, et cet `id`
+ * était le même sur toutes les cartes d'une grille : un document HTML ne
+ * garde que la première définition, si bien que chaque produit affichait la
+ * note du premier de la liste. La largeur, elle, ne collisionne avec rien, et
+ * les couleurs redeviennent des jetons.
+ */
 function Stars({ value }: { value: number }) {
+  const filled = Math.max(0, Math.min(5, value));
+
   return (
-    <span aria-hidden className="flex items-center gap-px">
-      {[1, 2, 3, 4, 5].map((step) => (
-        <svg key={step} viewBox="0 0 20 20" className="size-3.5">
-          <defs>
-            <linearGradient id={`s${step}`}>
-              <stop
-                offset={`${Math.max(0, Math.min(1, value - step + 1)) * 100}%`}
-                stopColor="#f2b134"
-              />
-              <stop offset="0%" stopColor="#e0e0da" />
-            </linearGradient>
-          </defs>
-          <path
-            fill={`url(#s${step})`}
-            d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"
-          />
-        </svg>
-      ))}
+    <span aria-hidden className="relative inline-flex">
+      <span className="flex items-center gap-px text-ink-300">
+        {[1, 2, 3, 4, 5].map((step) => (
+          <Star key={step} className="size-3.5 fill-current" />
+        ))}
+      </span>
+      <span
+        className="absolute inset-y-0 left-0 flex items-center gap-px overflow-hidden text-saffron"
+        style={{ width: `${(filled / 5) * 100}%` }}
+      >
+        {[1, 2, 3, 4, 5].map((step) => (
+          <Star key={step} className="size-3.5 shrink-0 fill-current" />
+        ))}
+      </span>
     </span>
   );
 }

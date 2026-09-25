@@ -42,8 +42,10 @@ function hasDecided(): boolean {
  * code :
  *
  * 1. **Refuser doit être aussi simple qu'accepter.** Les deux boutons sont
- *    côte à côte, de même taille, au même niveau — pas un lien « paramétrer »
- *    renvoyant à un écran de cases à décocher une par une.
+ *    côte à côte, de même taille, **de même traitement visuel** — pas un lien
+ *    « paramétrer » renvoyant à un écran de cases à décocher une par une, ni
+ *    un refus grisé à côté d'une acceptation en bleu plein, qui pousse le
+ *    choix aussi sûrement qu'une case pré-cochée.
  * 2. **Rien ne se dépose avant le choix.** La boutique ne charge aucun
  *    traceur ; ce bandeau enregistre une décision, il n'en débloque pas un.
  * 3. **Le choix se prouve.** Il part vers `/account/consents`, qui l'horodate
@@ -121,7 +123,7 @@ export function CookieBanner() {
           <Button type="button" variant="secondary" onClick={() => decide(false)}>
             Refuser
           </Button>
-          <Button type="button" onClick={() => decide(true)}>
+          <Button type="button" variant="secondary" onClick={() => decide(true)}>
             Accepter
           </Button>
         </div>
