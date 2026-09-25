@@ -2,7 +2,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
-  ImageOff,
   Leaf,
   RotateCcw,
   ShieldCheck,
@@ -18,10 +17,11 @@ import { ButtonLink } from '@/components/ui/button';
 import { ProductRail } from '@/components/catalog/product-rail';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
 import { TiltFrame } from '@/components/marketing/tilt-frame';
+import { ShowcaseScene } from '@/components/marketing/showcase-scene';
 import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
 import { listPosts } from '@/lib/data/content';
 import { getCart } from '@/lib/data/cart';
-import { shortDate } from '@/lib/format';
+import { money, shortDate } from '@/lib/format';
 
 /**
  * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
@@ -85,60 +85,100 @@ export default async function HomePage() {
 
       <main>
         {/* --- Accroche -----------------------------------------------------
-            Asymétrique : le texte occupe deux colonnes sur cinq, l'image le
-            reste. Une accroche centrée sur fond dégradé est le réflexe par
-            défaut ; ici l'objet vendu prend la place, ce qui est plus honnête
-            pour une boutique. */}
-        <section className="mx-auto max-w-7xl px-4 pt-10 lg:px-8 lg:pt-16">
-          <div className="grid items-center gap-10 lg:grid-cols-5 lg:gap-14">
-            <div className="lg:col-span-2">
-              <p className="text-sm font-medium tracking-wide text-saffron uppercase">
+            Bande sombre, pleine largeur, avec une scène en volume derrière le
+            titre. C'est la seule rupture de ton de la boutique, et elle est
+            volontaire : la vitrine d'un magasin n'est pas éclairée comme ses
+            rayons. Le reste de la page revient au fond clair, où l'on compare
+            des prix et lit des mentions légales.
+
+            La photo du produit mis en avant reste, à droite : une accroche qui
+            ne montre rien de ce qu'elle vend est une affiche, pas une
+            boutique. */}
+        <section className="relative isolate overflow-hidden bg-ink-900">
+          <ShowcaseScene />
+
+          {/* Voile côté texte. La scène tourne et flotte : sans garantie, un
+              volume finit tôt ou tard derrière un mot, et le contraste du
+              titre dépendrait de la seconde à laquelle on regarde. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 hidden lg:block lg:bg-linear-to-r lg:from-ink-900 lg:from-15% lg:to-transparent lg:to-60%"
+          />
+
+          {/* Halo par-dessus le voile, en superposition lumineuse : placé
+              dessous, il était éteint par le noir qui protège le titre, et la
+              bande virait au rectangle terne. Il tient aussi la composition
+              quand WebGL manque à l'appel. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 mix-blend-screen bg-[radial-gradient(55%_55%_at_20%_25%,rgba(43,78,255,0.35),transparent_70%),radial-gradient(45%_50%_at_78%_80%,rgba(194,65,12,0.28),transparent_70%)]"
+          />
+
+          <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-20 lg:grid-cols-5 lg:gap-14 lg:px-8 lg:py-28">
+            <div className="lg:col-span-3">
+              <p className="text-sm font-medium tracking-wide text-saffron-soft/80 uppercase">
                 Nouvelle collection
               </p>
-              <h1 className="mt-4 text-4xl font-bold text-ink-900 sm:text-5xl lg:text-6xl">
+              <h1 className="mt-4 text-balance text-5xl font-bold text-white sm:text-6xl lg:text-7xl">
                 Le nécessaire,
                 <br />
                 bien choisi.
               </h1>
-              <p className="mt-5 max-w-md text-lg text-ink-600">
+              <p className="mt-6 max-w-md text-lg text-white/70">
                 Du canapé au paquet de riz : une sélection courte, des marques
                 identifiées, et des prix qui tiennent sans promotion permanente.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-9 flex flex-wrap gap-3">
                 {primaryCategory ? (
                   <ButtonLink href={`/rayons/${primaryCategory.slug}`} size="lg" className="px-7">
                     Découvrir {primaryCategory.name.toLowerCase()}
                   </ButtonLink>
                 ) : null}
-                <ButtonLink href="/nouveautes" variant="secondary" size="lg">
+                <ButtonLink
+                  href="/nouveautes"
+                  size="lg"
+                  className="border border-white/25 bg-white/5 text-white hover:bg-white/10"
+                >
                   Voir les nouveautés
                 </ButtonLink>
               </div>
             </div>
 
-            <div className="lg:col-span-3">
-              <TiltFrame>
-                <div className="ratio-wide relative overflow-hidden rounded-card bg-clay-100 shadow-card">
-                  {hero?.imageUrl ? (
-                    <Image
-                      src={hero.imageUrl}
-                      alt={hero.imageAlt}
-                      fill
-                      sizes="(min-width: 1024px) 60vw, 100vw"
-                      // Image de première vue : chargée en priorité, c'est elle qui
-                      // détermine la vitesse perçue de la page.
-                      priority
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div aria-hidden className="grid size-full place-items-center">
-                      <ImageOff className="size-10 text-ink-400" />
+            {/* Le produit en vedette, dans un cadre qui s'incline au pointeur.
+                Posé sur la scène, il en reçoit les lumières. */}
+            {hero?.imageUrl ? (
+              <div className="lg:col-span-2">
+                <TiltFrame>
+                  <Link
+                    href={`/produits/${hero.slug}`}
+                    className="block overflow-hidden rounded-card ring-1 ring-white/15"
+                  >
+                    <div className="ratio-product relative bg-ink-800">
+                      <Image
+                        src={hero.imageUrl}
+                        alt={hero.imageAlt}
+                        fill
+                        sizes="(min-width: 1024px) 34vw, 100vw"
+                        // Image de première vue : c'est elle qui détermine la
+                        // vitesse perçue de la page.
+                        priority
+                        className="object-cover"
+                      />
+                      <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-ink-900/85 to-transparent p-5">
+                        <span className="block text-xs tracking-wide text-white/60 uppercase">
+                          {hero.brand ?? 'À la une'}
+                        </span>
+                        <span className="mt-0.5 block font-medium text-white">{hero.name}</span>
+                        <span data-price className="mt-1 block text-lg font-semibold text-white">
+                          {money(hero.priceCents, hero.currencyCode)}
+                        </span>
+                      </span>
                     </div>
-                  )}
-                </div>
-              </TiltFrame>
-            </div>
+                  </Link>
+                </TiltFrame>
+              </div>
+            ) : null}
           </div>
         </section>
 
