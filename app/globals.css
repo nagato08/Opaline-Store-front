@@ -140,6 +140,14 @@
     aspect-ratio: 4 / 5;
   }
 
+  /* Le rappel d'achat de la fiche produit s'efface devant le bandeau de
+   * consentement, qui occupe le même bas d'écran : sur téléphone, les deux
+   * se recouvraient et le bouton d'ajout passait dessous, inutilisable. Le
+   * consentement se demande une fois, l'achat attend ce moment-là. */
+  html[data-consent='pending'] .buy-bar {
+    display: none;
+  }
+
   .ratio-wide {
     aspect-ratio: 16 / 9;
   }

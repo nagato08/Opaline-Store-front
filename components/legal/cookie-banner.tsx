@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api';
@@ -68,6 +68,16 @@ export function CookieBanner() {
      divergence entre les deux rendus, le serveur n'ayant aucun moyen de
      connaître le choix. */
   const decided = useSyncExternalStore(subscribe, hasDecided, () => true);
+
+  /* Marque la page tant que le choix n'est pas fait.
+     Deux éléments fixés au bas de l'écran se recouvrent : sur un téléphone, le
+     rappel d'achat de la fiche produit se retrouvait caché derrière ce
+     bandeau, bouton compris. Plutôt que de faire connaître ce composant à
+     l'autre, l'état passe par un attribut du document, que n'importe quelle
+     feuille de style peut interroger. */
+  useEffect(() => {
+    document.documentElement.dataset.consent = decided ? 'settled' : 'pending';
+  }, [decided]);
 
   async function decide(isGranted: boolean) {
     try {
