@@ -64,9 +64,14 @@ export function ProductRail({ products }: { products: ProductSummary[] }) {
     <div className="relative">
       <div
         ref={rail}
+        // `scroll-p-*` doit valoir le padding : sans lui, l'ancrage aligne le
+        // bord de la première carte sur le bord de la zone de défilement, donc
+        // *sous* le padding, et le rail s'auto-décale au chargement en
+        // rognant la carte de gauche.
+        //
         // `overflow-y-visible` refusé par le navigateur sur un axe qui défile :
         // la marge verticale laisse la place au relief des cartes au survol.
-        className="rail -mx-4 flex snap-x gap-5 overflow-x-auto px-4 py-2 lg:-mx-8 lg:px-8"
+        className="rail -mx-4 flex snap-x scroll-p-4 gap-5 overflow-x-auto px-4 py-2 lg:-mx-8 lg:scroll-p-8 lg:px-8"
       >
         {products.map((product, index) => (
           <div key={product.id} className="w-[45vw] shrink-0 sm:w-[30vw] xl:w-[22vw]">
@@ -81,14 +86,14 @@ export function ProductRail({ products }: { products: ProductSummary[] }) {
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-canvas to-transparent transition-opacity duration-200 lg:-left-8',
+          'pointer-events-none absolute inset-y-0 left-0 w-10 bg-linear-to-r from-canvas to-transparent transition-opacity duration-200 lg:-left-8',
           atStart && 'opacity-0',
         )}
       />
       <div
         aria-hidden
         className={cn(
-          'pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-canvas to-transparent transition-opacity duration-200 lg:-right-8',
+          'pointer-events-none absolute inset-y-0 right-0 w-10 bg-linear-to-l from-canvas to-transparent transition-opacity duration-200 lg:-right-8',
           atEnd && 'opacity-0',
         )}
       />
