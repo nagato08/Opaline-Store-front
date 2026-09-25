@@ -18,8 +18,10 @@ import { ButtonLink } from '@/components/ui/button';
 import { ProductRail } from '@/components/catalog/product-rail';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
 import { TiltFrame } from '@/components/marketing/tilt-frame';
-import { getCategoryTree, listBrands, listHomeReviews, listProducts } from '@/lib/data/catalog';
+import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
+import { listPosts } from '@/lib/data/content';
 import { getCart } from '@/lib/data/cart';
+import { shortDate } from '@/lib/format';
 
 /**
  * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
@@ -61,10 +63,12 @@ const reasons = [
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [categories, { products }, brands, cart] = await Promise.all([
+  const [categories, { products }, brands, collections, { posts }, cart] = await Promise.all([
     getCategoryTree(),
     listProducts({ sort: 'rating', perPage: 12 }),
     listBrands(),
+    listCollections(),
+    listPosts(),
     getCart(),
   ]);
 
@@ -234,6 +238,49 @@ export default async function HomePage() {
           </section>
         ) : null}
 
+        {/* --- Sélections ----------------------------------------------------
+            Une collection traverse les rayons pour répondre à une intention
+            — meubler un salon, monter un coin café — là où le rayon range par
+            nature de produit. C'est ce qui fait acheter trois articles plutôt
+            qu'un. */}
+        {collections.length > 0 ? (
+          <section aria-labelledby="selections" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+            <h2 id="selections" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+              Nos sélections
+            </h2>
+            <p className="mt-2 max-w-xl text-ink-600">
+              Des ensembles pensés pour aller ensemble, d’un rayon à l’autre.
+            </p>
+
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {collections.slice(0, 3).map((collection) => (
+                <Link
+                  key={collection.id}
+                  href={`/collections/${collection.slug}`}
+                  className="group flex flex-col justify-between rounded-card border border-ink-200 p-6 transition-colors duration-150 hover:border-ink-400"
+                >
+                  <div>
+                    <h3 className="font-display text-xl font-semibold text-ink-900">
+                      {collection.name}
+                    </h3>
+                    {collection.description ? (
+                      <p className="mt-2 text-[15px] text-ink-600">{collection.description}</p>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-6 flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600">
+                    {collection.productCount} article{collection.productCount > 1 ? 's' : ''}
+                    <ArrowRight
+                      aria-hidden
+                      className="size-4 transition-transform duration-150 group-hover:translate-x-0.5"
+                    />
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         <BrandMarquee brands={brands} />
 
         {/* --- Pourquoi cette boutique ---------------------------------------
@@ -353,6 +400,54 @@ export default async function HomePage() {
                     ) : null}
                   </figcaption>
                 </figure>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {/* --- Journal -------------------------------------------------------
+            Des articles utiles plutôt que des annonces : entretenir un plateau
+            en chêne ou mesurer une cage d'escalier évite un retour, ce qui
+            sert le client autant que la boutique. */}
+        {posts.length > 0 ? (
+          <section aria-labelledby="journal" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="journal" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+                  Du journal
+                </h2>
+                <p className="mt-2 text-ink-600">
+                  Ce qu’il faut savoir avant d’acheter, et après.
+                </p>
+              </div>
+
+              <Link
+                href="/blog"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600 transition-colors duration-150 hover:text-cobalt-700"
+              >
+                Tous les articles
+                <ArrowRight aria-hidden className="size-4" />
+              </Link>
+            </div>
+
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {posts.slice(0, 3).map((post) => (
+                <article key={post.id} className="group flex flex-col">
+                  <h3 className="font-display text-lg font-semibold text-ink-900">
+                    <Link href={`/blog/${post.slug}`} className="hover:underline">
+                      {post.title}
+                    </Link>
+                  </h3>
+                  {post.excerpt ? (
+                    <p className="mt-2 text-[15px] leading-relaxed text-ink-600">{post.excerpt}</p>
+                  ) : null}
+                  <time
+                    dateTime={post.publishedAt}
+                    className="mt-3 text-sm text-ink-500"
+                  >
+                    {shortDate(post.publishedAt)}
+                  </time>
+                </article>
               ))}
             </div>
           </section>

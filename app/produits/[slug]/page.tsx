@@ -6,12 +6,13 @@ import { ImageOff, RotateCcw, ShieldCheck, Snowflake, Star, Truck } from 'lucide
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { countryName, number } from '@/lib/format';
-import { getCategoryTree, getProductBySlug, listReviews } from '@/lib/data/catalog';
+import { getCategoryTree, getProductBySlug, listRelated, listReviews } from '@/lib/data/catalog';
 import { getCart } from '@/lib/data/cart';
 import { Reviews } from '@/components/product/reviews';
 import { PurchasePanel } from './purchase-panel';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { ProductZoom } from '@/components/product/product-zoom';
+import { ProductRail } from '@/components/catalog/product-rail';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +37,20 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
 
   const primaryCategory = product.categories.find((category) => category.isPrimary) ?? product.categories[0];
   const food = product.compliance.food;
+
+  /* Suggestions tirées du rayon principal. Après le produit, pour la même
+     raison que les avis : son identifiant et sa catégorie n'existent pas
+     avant de l'avoir lu. */
+  const parentCategory = categories.find((department) =>
+    department.children.some((child) => child.slug === primaryCategory?.slug),
+  );
+
+  const related = primaryCategory
+    ? await listRelated(
+        [primaryCategory.slug, parentCategory?.slug].filter((slug): slug is string => Boolean(slug)),
+        product.id,
+      )
+    : [];
 
   return (
     <>
@@ -209,6 +224,32 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                 </div>
               ) : null}
 
+              {/* Caractéristiques.
+                  Un tableau plutôt qu'une liste à puces : on compare deux
+                  fiches en balayant la colonne de gauche, ce qu'une phrase
+                  continue ne permet pas. */}
+              {product.attributes.length > 0 ? (
+                <div className="mt-10 border-t border-ink-200/70 pt-8">
+                  <h2 className="font-display text-xl font-semibold text-ink-900">
+                    Caractéristiques
+                  </h2>
+                  <dl className="mt-4 divide-y divide-ink-200/70 text-sm">
+                    {product.attributes.map((attribute) => (
+                      <div
+                        key={attribute.code}
+                        className="grid grid-cols-5 gap-4 py-2.5 sm:grid-cols-3"
+                      >
+                        <dt className="col-span-2 text-ink-500 sm:col-span-1">{attribute.name}</dt>
+                        <dd className="col-span-3 text-ink-900 sm:col-span-2">
+                          {attribute.value}
+                          {attribute.unit ? ` ${attribute.unit}` : ''}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
+
               {product.compliance.warrantyMonths || product.compliance.countryOfOrigin ? (
                 <div className="mt-10 space-y-2 border-t border-ink-200/70 pt-8 text-sm text-ink-700">
                   {product.compliance.warrantyMonths ? (
@@ -223,6 +264,29 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
           </div>
 
           <Reviews summary={reviews} />
+
+          {/* Suggestions du même rayon.
+              Placées après les avis, donc après la décision : avant, elles
+              détournent d'une fiche qu'on était en train de lire. */}
+          {related.length > 0 && primaryCategory ? (
+            <section aria-labelledby="similaires" className="mt-16 border-t border-ink-200/70 pt-10">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <h2 id="similaires" className="font-display text-xl font-semibold text-ink-900">
+                  Dans le même rayon
+                </h2>
+                <Link
+                  href={`/rayons/${primaryCategory.slug}`}
+                  className="text-[15px] font-medium text-cobalt-600 hover:underline"
+                >
+                  Voir tout {primaryCategory.name.toLowerCase()}
+                </Link>
+              </div>
+
+              <div className="mt-6">
+                <ProductRail products={related} />
+              </div>
+            </section>
+          ) : null}
         </section>
       </main>
 

@@ -68,6 +68,98 @@ function toSummary(card: ApiProductCard): ProductSummary {
 
 export type ProductListResult = { products: ProductSummary[]; total: number };
 
+/**
+ * Produits du même rayon, le produit courant exclu.
+ *
+ * L'API n'expose pas de « produits associés » : le lien de parenté le plus
+ * fiable dont on dispose est la catégorie principale, et c'est déjà ce
+ * qu'attend un visiteur qui n'a pas trouvé son bonheur sur la fiche ouverte.
+ * Le jour où le commerçant voudra choisir les associations à la main, c'est
+ * cette fonction qu'il faudra remplacer, pas les écrans.
+ */
+export async function listRelated(
+  categorySlugs: string[],
+  excludeId: string,
+  limit = 8,
+): Promise<ProductSummary[]> {
+  /* Du plus précis au plus large : « Canapés et fauteuils » d'abord, puis
+     « Mobilier ». Une sous-catégorie de deux articles ne donnerait qu'une
+     seule suggestion, et une rangée d'un produit ressemble à une panne
+     plutôt qu'à un choix. */
+  const found = new Map<string, ProductSummary>();
+
+  for (const categorySlug of categorySlugs) {
+    if (found.size >= 4) break;
+
+    try {
+      const { products } = await listProducts({ categorySlug, perPage: limit + 1 });
+
+      for (const product of products) {
+        if (product.id !== excludeId && !found.has(product.id)) {
+          found.set(product.id, product);
+        }
+      }
+    } catch {
+      /* Une suggestion absente ne vaut pas une fiche produit en erreur. */
+    }
+  }
+
+  return [...found.values()].slice(0, limit);
+}
+
+export type Collection = {
+  id: string;
+  code: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  productCount: number;
+};
+
+type ApiCollection = {
+  id: string;
+  code: string;
+  isActive: boolean;
+  translations: Array<{ locale: string; name: string; slug: string; description: string | null }>;
+  _count?: { products: number };
+};
+
+/**
+ * Sélections thématiques du commerçant.
+ *
+ * L'API rend la forme brute, traductions comprises ; on n'en garde ici que
+ * le français et le décompte, seuls utiles à l'affichage.
+ */
+export async function listCollections(): Promise<Collection[]> {
+  try {
+    const collections = await apiFetch<ApiCollection[]>('/catalog/collections');
+
+    return collections
+      .filter((collection) => collection.isActive)
+      .flatMap((collection) => {
+        const translation =
+          collection.translations.find((entry) => entry.locale === 'FR') ??
+          collection.translations[0];
+
+        if (!translation) return [];
+
+        return [
+          {
+            id: collection.id,
+            code: collection.code,
+            name: translation.name,
+            slug: translation.slug,
+            description: translation.description,
+            productCount: collection._count?.products ?? 0,
+          },
+        ];
+      })
+      .filter((collection) => collection.productCount > 0);
+  } catch {
+    return [];
+  }
+}
+
 export type Brand = { id: string; name: string; slug: string };
 
 /**
@@ -94,6 +186,7 @@ export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'name_asc' | '
 
 export async function listProducts(params: {
   categorySlug?: string;
+  collectionSlug?: string;
   search?: string;
   sort?: ProductSort;
   /** Filtres du rayon, tous portés par `ProductQueryDto` côté API. */
@@ -105,6 +198,7 @@ export async function listProducts(params: {
 }): Promise<ProductListResult> {
   const query = new URLSearchParams();
   if (params.categorySlug) query.set('categorySlug', params.categorySlug);
+  if (params.collectionSlug) query.set('collectionSlug', params.collectionSlug);
   if (params.search) query.set('search', params.search);
   if (params.sort) query.set('sort', params.sort);
   /* Répété plutôt que joint par des virgules : `@IsArray()` attend
@@ -180,6 +274,12 @@ export type ProductDetail = {
   };
   rating: { average: number; count: number };
   variants: ProductVariant[];
+  /**
+   * Caractéristiques techniques, dans l'ordre voulu par le commerçant.
+   * `value` est toujours du texte : l'API formate déjà les nombres, et
+   * `unit` porte l'unité quand il y en a une.
+   */
+  attributes: Array<{ code: string; name: string; unit: string | null; value: string }>;
 };
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
