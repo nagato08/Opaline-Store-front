@@ -54,15 +54,20 @@ export function Campaigns() {
 
   const bar = leading?.type === 'TOP_BAR' ? leading : undefined;
   const notices = leading && leading.type !== 'TOP_BAR' ? [leading] : [];
-  /* Pas de fenêtre modale dans le tunnel de paiement. Une promotion qui
-     s'interpose entre le client et son règlement le renvoie au catalogue
-     au pire moment : constaté en production sur l'étape de livraison, où
-     la fenêtre recouvrait le choix des modes. Les bandeaux, eux, restent —
-     ils ne bloquent rien. */
-  const inCheckout = pathname === '/commande';
-  const popups = inCheckout
-    ? []
-    : campaigns.filter((campaign) => campaign.type === 'POPUP' || campaign.type === 'INTERSTITIAL');
+  /* Les fenêtres modales ne paraissent que sur l'accueil.
+     Ailleurs, elles arrivent sur quelqu'un qui fait déjà quelque chose : lire
+     une fiche, comparer une grille, payer. Dans le tunnel, la promotion
+     recouvrait le choix du mode de livraison et renvoyait au catalogue au
+     pire moment ; sur une fiche produit, elle masque le prix. L'accueil est le
+     seul écran où le visiteur n'a encore rien entrepris.
+
+     Les bandeaux, eux, restent partout — ils ne bloquent rien. */
+  const popups =
+    pathname === '/'
+      ? campaigns.filter(
+          (campaign) => campaign.type === 'POPUP' || campaign.type === 'INTERSTITIAL',
+        )
+      : [];
 
   return (
     <>

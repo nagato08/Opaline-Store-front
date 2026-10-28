@@ -6,9 +6,7 @@ import {
   Leaf,
   RotateCcw,
   ShieldCheck,
-  Snowflake,
   Star,
-  Store,
   Truck,
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
@@ -16,6 +14,7 @@ import { Footer } from '@/components/layout/footer';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { ButtonLink } from '@/components/ui/button';
 import { ProductRail } from '@/components/catalog/product-rail';
+import { ProductCard } from '@/components/product/product-card';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
 import { TiltFrame } from '@/components/marketing/tilt-frame';
 import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
@@ -39,22 +38,29 @@ const guarantees = [
  * Ce qui distingue une boutique à propriétaire unique d'une place de marché —
  * trois faits vérifiables, pas des adjectifs.
  */
+/**
+ * Trois faits chiffrés, pas des adjectifs.
+ *
+ * Le chiffre vient avant la phrase parce qu'il se retient : « un seul » dit
+ * l'absence de vendeurs tiers mieux qu'une tournure sur la qualité de service,
+ * et « 14 jours » engage là où « retours faciles » ne promet rien.
+ */
 const reasons = [
   {
-    icon: Store,
-    title: 'Un seul stock, un seul expéditeur',
+    figure: 'Un seul',
+    title: 'Stock et expéditeur',
     detail:
       'Pas de vendeurs tiers ni de colis séparés : chaque commande part du même entrepôt, quel que soit le rayon.',
   },
   {
-    icon: Snowflake,
+    figure: '0 à 4 °C',
     title: 'Chaîne du froid respectée',
     detail:
       'Les produits frais voyagent en glacière jusqu’à la porte — la livraison le signale avant l’achat, pas après.',
   },
   {
-    icon: ShieldCheck,
-    title: 'France et Canada, sans surprise à la caisse',
+    figure: '2 pays',
+    title: 'France et Canada, sans surprise',
     detail:
       'Le prix affiché correspond au régime du pays livré — TTC en France, taxes ajoutées au Canada.',
   },
@@ -229,12 +235,30 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            {/* En rail plutôt qu'en grille : douze articles empilés sur quatre
-                rangées repoussaient le reste de la page à trois écrans de
-                défilement. */}
-            <div className="mt-8">
-              <ProductRail products={rest} />
+            {/* Composition à deux poids.
+                Le premier article occupe deux colonnes et quatre autres se
+                rangent à côté : une grille où toutes les tuiles font la même
+                taille ne dit pas par où commencer, et l'œil la parcourt sans
+                s'arrêter. Le reste du catalogue continue en rail juste
+                dessous, où le défilement latéral évite d'empiler quatre
+                rangées de plus. */}
+            <div className="mt-8 grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <ProductCard product={rest[0]} priority feature />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 lg:grid-cols-1 lg:gap-6">
+                {rest.slice(1, 3).map((product) => (
+                  <ProductCard key={product.id} product={product} priority />
+                ))}
+              </div>
             </div>
+
+            {rest.length > 3 ? (
+              <div className="mt-10">
+                <ProductRail products={rest.slice(3)} />
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -284,27 +308,39 @@ export default async function HomePage() {
         <BrandMarquee brands={brands} />
 
         {/* --- Pourquoi cette boutique ---------------------------------------
-            Trois faits, pas des adjectifs : c'est ce qui différencie
-            réellement un propriétaire unique d'une place de marché, et c'est
-            la question qu'un visiteur qui ne connaît pas l'enseigne se pose
-            avant d'ajouter au panier. */}
-        <section aria-labelledby="pourquoi" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-          <h2 id="pourquoi" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-            Pourquoi ici plutôt qu’ailleurs
-          </h2>
+            Bande sombre au milieu du parcours. Toute la page est claire, et
+            une succession de blocs crème finit par se lire comme un seul bloc :
+            cette rupture redonne un repère et marque la fin de la partie
+            catalogue.
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-3">
-            {reasons.map((reason) => (
-              <div key={reason.title} className="rounded-card bg-clay-50 p-6">
-                <span className="grid size-11 place-items-center rounded-full bg-surface shadow-card">
-                  <reason.icon aria-hidden className="size-5 text-cobalt-600" />
-                </span>
-                <p className="mt-4 font-display text-lg font-semibold text-ink-900">
-                  {reason.title}
-                </p>
-                <p className="mt-1.5 text-[15px] text-ink-600">{reason.detail}</p>
-              </div>
-            ))}
+            Trois faits chiffrés, pas des adjectifs. Le nombre porte la plus
+            grande taille de la page après le titre — c'est lui qu'on retient,
+            et c'est ce qui différencie un propriétaire unique d'une place de
+            marché. */}
+        <section aria-labelledby="pourquoi" className="reveal mt-20 bg-ink-900">
+          <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-20">
+            <h2 id="pourquoi" className="max-w-xl text-2xl font-bold text-white sm:text-3xl">
+              Pourquoi ici plutôt qu’ailleurs
+            </h2>
+
+            <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-6">
+              {reasons.map((reason) => (
+                <div key={reason.title}>
+                  <p
+                    data-numeric
+                    className="font-display text-5xl font-bold text-white lg:text-6xl"
+                  >
+                    {reason.figure}
+                  </p>
+                  <p className="mt-3 font-display text-lg font-semibold text-white">
+                    {reason.title}
+                  </p>
+                  <p className="mt-1.5 max-w-xs text-[15px] leading-relaxed text-white/60">
+                    {reason.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

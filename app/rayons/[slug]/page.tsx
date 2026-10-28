@@ -167,7 +167,7 @@ export default async function DepartmentPage({
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-5 gap-y-9 md:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-3">
               {products.map((product, index) => (
                 <ProductCard key={product.id} product={product} priority={index < 4} />
               ))}

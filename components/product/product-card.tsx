@@ -43,9 +43,17 @@ export type ProductSummary = {
 export function ProductCard({
   product,
   priority = false,
+  feature = false,
 }: {
   product: ProductSummary;
   priority?: boolean;
+  /**
+   * Carte mise en avant, qui occupe deux colonnes d'une composition.
+   * Son image passe au carré pour remplir la largeur gagnée, et son titre
+   * grossit : une tuile deux fois plus large avec la typographie des autres
+   * se lit comme une erreur de gabarit, pas comme une intention.
+   */
+  feature?: boolean;
 }) {
   const hasDiscount =
     product.compareAtCents !== null && product.compareAtCents > product.priceCents;
@@ -57,7 +65,10 @@ export function ProductCard({
           cette paire : sans eux, chaque image nommée se fondrait à chaque
           navigation, y compris celles qui ne mènent nulle part. */}
       <ViewTransition name={`produit-${product.slug}`} share="morph" default="none">
-        <div className="ratio-product relative overflow-hidden rounded-card bg-clay-100">
+        <div className={cn(
+            'relative overflow-hidden rounded-card bg-clay-50',
+            feature ? 'aspect-square lg:aspect-4/5' : 'ratio-product',
+          )}>
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
@@ -65,7 +76,11 @@ export function ProductCard({
               fill
               // Dimensions déclarées par `fill` + conteneur au ratio fixe : la
               // grille ne saute pas pendant le chargement.
-              sizes="(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw"
+              sizes={
+                feature
+                  ? '(min-width: 1024px) 50vw, 100vw'
+                  : '(min-width: 1280px) 22vw, (min-width: 768px) 30vw, 45vw'
+              }
               priority={priority}
               className={cn(
                 'object-cover transition-transform duration-300',
@@ -101,7 +116,12 @@ export function ProductCard({
           <p className="text-xs tracking-wide text-ink-500 uppercase">{product.brand}</p>
         ) : null}
 
-        <h3 className="mt-1 font-sans text-[15px] leading-snug font-medium text-ink-900">
+        <h3
+          className={cn(
+            'mt-1 font-medium text-ink-900',
+            feature ? 'font-display text-xl leading-tight' : 'font-sans text-[15px] leading-snug',
+          )}
+        >
           <Link href={`/produits/${product.slug}`} className="after:absolute after:inset-0">
             {product.name}
           </Link>
