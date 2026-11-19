@@ -1,4 +1,6 @@
 import { ViewTransition } from 'react';
+import { QuickAdd } from '@/components/product/quick-add';
+import { WishlistButton } from '@/components/product/wishlist-button';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ImageOff, Star } from 'lucide-react';
@@ -27,6 +29,8 @@ export type ProductSummary = {
   ecoTaxCents?: number;
   ratingAvg?: number;
   ratingCount?: number;
+  /** Nul dès qu'il faut choisir une déclinaison : pas d'ajout depuis la grille. */
+  defaultVariantId?: string | null;
 };
 
 /**
@@ -44,9 +48,12 @@ export function ProductCard({
   product,
   priority = false,
   feature = false,
+  isNew = false,
 }: {
   product: ProductSummary;
   priority?: boolean;
+  /** Posé par la page qui connaît le contexte : l'API ne date pas les cartes. */
+  isNew?: boolean;
   /**
    * Carte mise en avant, qui occupe deux colonnes d'une composition.
    * Son image passe au carré pour remplir la largeur gagnée, et son titre
@@ -59,14 +66,14 @@ export function ProductCard({
     product.compareAtCents !== null && product.compareAtCents > product.priceCents;
 
   return (
-    <article className="group relative flex flex-col">
+    <article className="group relative flex flex-col overflow-hidden rounded-card border border-ink-200/80 bg-surface transition-colors duration-150 hover:border-walnut-300">
       {/* Nommée pour que la vignette devienne la photo de la fiche plutôt
           que de disparaître. `share`/`default="none"` limitent l'animation à
           cette paire : sans eux, chaque image nommée se fondrait à chaque
           navigation, y compris celles qui ne mènent nulle part. */}
       <ViewTransition name={`produit-${product.slug}`} share="morph" default="none">
         <div className={cn(
-            'relative overflow-hidden rounded-card bg-clay-50',
+            'relative overflow-hidden bg-clay-50',
             feature ? 'aspect-square lg:aspect-4/5' : 'ratio-product',
           )}>
           {product.imageUrl ? (
@@ -101,6 +108,13 @@ export function ProductCard({
               <span className="rounded-full bg-saffron px-2.5 py-1 text-xs font-semibold text-white">
                 {discountRate(product.priceCents, product.compareAtCents as number)}
               </span>
+            ) : isNew ? (
+              /* Posée par la page qui sait ce qu'elle liste, jamais devinée
+                 ici : l'API ne donne pas de date de mise en ligne, et un
+                 « Nouveau » décidé au hasard ne vaut rien. */
+              <span className="rounded-full bg-walnut-100 px-2.5 py-1 text-xs font-semibold text-walnut-700">
+                Nouveau
+              </span>
             ) : null}
             {!product.isAvailable ? (
               <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-medium text-white">
@@ -108,10 +122,20 @@ export function ProductCard({
               </span>
             ) : null}
           </div>
+
+          {/* Mise de côté, au-dessus du lien qui recouvre la carte. */}
+          <div className="absolute top-3 right-3">
+            <WishlistButton
+              productId={product.id}
+              productSlug={product.slug}
+              productName={product.name}
+              compact
+            />
+          </div>
         </div>
       </ViewTransition>
 
-      <div className="mt-3.5 flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col p-4">
         {product.brand ? (
           <p className="text-xs tracking-wide text-ink-500 uppercase">{product.brand}</p>
         ) : null}
@@ -168,8 +192,19 @@ export function ProductCard({
               )}
             </p>
           ) : null}
-
         </div>
+
+        {/* Ajout direct quand il n'y a rien à choisir ; sinon la carte mène à
+            la fiche, et le bouton n'a pas lieu d'être. */}
+        {product.defaultVariantId ? (
+          <div className="mt-3.5">
+            <QuickAdd
+              variantId={product.defaultVariantId}
+              productName={product.name}
+              disabled={!product.isAvailable}
+            />
+          </div>
+        ) : null}
       </div>
     </article>
   );

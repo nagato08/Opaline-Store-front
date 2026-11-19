@@ -51,7 +51,7 @@ export default async function BlogPage() {
                       )}
                     </div>
                     <p className="mt-3.5 text-sm text-ink-500">{shortDate(post.publishedAt)}</p>
-                    <h2 className="mt-1 font-display text-lg font-semibold text-ink-900 group-hover:text-cobalt-600">
+                    <h2 className="mt-1 font-display text-lg font-semibold text-ink-900 group-hover:text-walnut-600">
                       {post.title}
                     </h2>
                     {post.excerpt ? <p className="mt-1.5 text-[15px] text-ink-600">{post.excerpt}</p> : null}

@@ -3,28 +3,33 @@
 /*
  * Système de design — boutique.
  *
- * Hérite des jetons du back-office (`../admin_ecommerce/app/globals.css`) :
- * même cobalt d'action, mêmes couleurs de statut, mêmes neutres chauds. C'est
- * ce qui fait reconnaître un même produit d'un côté et de l'autre.
+ * Le noyer remplace le cobalt comme couleur d'action. Une boutique qui vend
+ * du meuble, de l'épicerie et du textile se présente mieux dans une gamme
+ * chaude : le bleu franc du back-office tranchait sur des photos de bois, de
+ * lin et de pain, là où le brun les accompagne. Le back-office, lui, garde le
+ * cobalt — c'est un outil de travail, pas une vitrine.
  *
- * Ce qui change, c'est le régime : le back-office est dense parce qu'on y
- * traite des lignes ; la boutique respire parce qu'on y regarde des objets.
- * La photo porte la vente — meubles, électronique, épicerie se jugent à l'œil
- * avant de se juger au descriptif.
+ * Le régime diffère aussi : le back-office est dense parce qu'on y traite des
+ * lignes ; la boutique respire parce qu'on y regarde des objets. La photo
+ * porte la vente — meubles, électronique, épicerie se jugent à l'œil avant de
+ * se juger au descriptif.
  */
 
 @theme {
-  /* --- Marque : identique au back-office -------------------------------- */
-  --color-cobalt-50: #eef2ff;
-  --color-cobalt-100: #dfe6ff;
-  --color-cobalt-200: #c4d0ff;
-  --color-cobalt-300: #9cb0ff;
-  --color-cobalt-400: #6d85ff;
-  --color-cobalt-500: #2b4eff;
-  --color-cobalt-600: #1a37e6;
-  --color-cobalt-700: #1429b4;
-  --color-cobalt-800: #14268f;
-  --color-cobalt-900: #152570;
+  /* --- Marque : le noyer -------------------------------------------------
+   * Une seule gamme porte l'enseigne, les actions et les fonds éditoriaux.
+   * Les tons clairs (50 à 200) servent de surfaces, le 500 de couleur
+   * d'action, le 900 de fond sombre pour le pied de page. */
+  --color-walnut-50: #faf4ef;
+  --color-walnut-100: #f4e8dd;
+  --color-walnut-200: #e7d1bc;
+  --color-walnut-300: #d4b091;
+  --color-walnut-400: #b5845d;
+  --color-walnut-500: #8b5e3c;
+  --color-walnut-600: #7a5234;
+  --color-walnut-700: #63422b;
+  --color-walnut-800: #43302a;
+  --color-walnut-900: #2c2421;
 
   /* --- Neutres chauds ---------------------------------------------------- */
   --color-ink-50: #f7f7f5;
@@ -49,11 +54,11 @@
   --color-info-soft: #e6f3fb;
 
   /* --- Propre à la boutique ---------------------------------------------
-   * L'argile sert de fond aux zones éditoriales et aux vignettes de rayon.
-   * Une teinte chaude et sourde met en valeur les photos de produits, là où
-   * un gris froid les refroidit. Le safran ne signale rien : il est là pour
-   * les moments de réclame (promotions, bandeau d'annonce), et jamais pour un
-   * statut — sinon il entrerait en concurrence avec l'orange d'alerte. */
+   * L'argile sert de fond aux vignettes de produit : plus neutre que le
+   * noyer, elle laisse la photo décider de la couleur de la carte. Le safran
+   * ne signale rien — il est là pour les moments de réclame (remise, compte à
+   * rebours), et jamais pour un statut, sinon il entrerait en concurrence
+   * avec l'orange d'alerte. */
   --color-clay-50: #faf7f2;
   --color-clay-100: #f2ece1;
   --color-clay-200: #e6dcc9;
@@ -61,7 +66,7 @@
   --color-saffron: #c2410c;
   --color-saffron-soft: #fdf0e6;
 
-  --color-canvas: #fbfbf8;
+  --color-canvas: #fdfcfa;
   --color-surface: #ffffff;
 
   /* --- Typographie : mêmes familles que le back-office ------------------- */
@@ -123,13 +128,13 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-cobalt-500);
+    outline: 2px solid var(--color-walnut-500);
     outline-offset: 2px;
     border-radius: 4px;
   }
 
   ::selection {
-    background: var(--color-cobalt-200);
+    background: var(--color-walnut-200);
   }
 }
 

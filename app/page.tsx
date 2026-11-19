@@ -2,7 +2,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
-  ImageOff,
   Leaf,
   RotateCcw,
   ShieldCheck,
@@ -11,16 +10,14 @@ import {
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { ButtonLink } from '@/components/ui/button';
-import { ProductRail } from '@/components/catalog/product-rail';
-import { ProductCard } from '@/components/product/product-card';
+import { PopularProducts } from '@/components/catalog/popular-products';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
 import { TiltFrame } from '@/components/marketing/tilt-frame';
 import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
 import { listPosts } from '@/lib/data/content';
 import { getCart } from '@/lib/data/cart';
-import { shortDate } from '@/lib/format';
+import { discountRate, money, shortDate } from '@/lib/format';
 
 /**
  * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
@@ -34,10 +31,6 @@ const guarantees = [
   { icon: Leaf, title: 'Produits sourcés', detail: 'Fournisseurs identifiés' },
 ];
 
-/**
- * Ce qui distingue une boutique à propriétaire unique d'une place de marché —
- * trois faits vérifiables, pas des adjectifs.
- */
 /**
  * Trois faits chiffrés, pas des adjectifs.
  *
@@ -69,14 +62,31 @@ const reasons = [
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [categories, { products }, brands, collections, { posts }, cart] = await Promise.all([
-    getCategoryTree(),
-    listProducts({ sort: 'rating', perPage: 12 }),
-    listBrands(),
-    listCollections(),
-    listPosts(),
-    getCart(),
-  ]);
+  const [categories, { products }, newest, brands, collections, { posts }, cart] =
+    await Promise.all([
+      getCategoryTree(),
+      listProducts({ sort: 'rating', perPage: 12 }),
+      /* Sert uniquement à poser la pastille « Nouveau » : l'API ne date pas
+         les cartes, et seul un tri par date dit lesquelles le sont. */
+      listProducts({ sort: 'newest', perPage: 4 }),
+      listBrands(),
+      listCollections(),
+      listPosts(),
+      getCart(),
+    ]);
+
+  const newIds = newest.products.map((product) => product.id);
+
+  /* Appartenance réelle des produits à leur rayon : le listing ne la porte
+     pas, et c'est elle qui alimente les onglets des plus populaires. */
+  const departmentMembers = await Promise.all(
+    categories.map(async (category) => ({
+      name: category.name,
+      productIds: (await listProducts({ categorySlug: category.slug, perPage: 48 })).products.map(
+        (product) => product.id,
+      ),
+    })),
+  );
 
   /* Les avis se chargent après le catalogue : ils sont indexés par produit,
      et on n'a les identifiants qu'une fois la liste lue. */
@@ -85,28 +95,65 @@ export default async function HomePage() {
   const [hero, ...rest] = products;
   const primaryCategory = categories[0];
 
+  /* Les portes du catalogue : chaque rayon, puis ses sous-rayons jusqu'à six
+     vignettes. Un rayon seul en donnerait trois sur une boutique généraliste,
+     et la grille paraîtrait vide là où le catalogue ne l'est pas. */
+  const departments = [
+    ...categories.map((category) => ({
+      href: `/rayons/${category.slug}`,
+      name: category.name,
+      imageUrl: category.imageUrl,
+      detail: category.children.map((child) => child.name).join(', ') || 'Voir le rayon',
+    })),
+    /* Un sous-rayon par rayon à chaque tour, plutôt que tous ceux du premier :
+       concaténés, les trois dernières vignettes venaient du même rayon et la
+       rangée du bas ne parlait plus que de mobilier. */
+    ...Array.from({ length: Math.max(...categories.map((c) => c.children.length), 0) }).flatMap(
+      (_, rank) =>
+        categories.flatMap((category) => {
+          const child = category.children[rank];
+          if (!child) return [];
+          return [
+            {
+              href: `/rayons/${category.slug}?rayon=${child.slug}`,
+              name: child.name,
+              imageUrl: child.imageUrl ?? category.imageUrl,
+              detail: category.name,
+            },
+          ];
+        }),
+    ),
+  ].slice(0, 6);
+
+  /* La plus forte remise réellement en cours : la bande d'offre annonce ce
+     chiffre, et l'inventer en ferait une promesse invérifiable. */
+  const bestDiscount =
+    products
+      .filter((product) => product.compareAtCents && product.compareAtCents > product.priceCents)
+      .sort(
+        (a, b) =>
+          b.compareAtCents! / b.priceCents - a.compareAtCents! / a.priceCents,
+      )[0] ?? null;
+
   return (
     <>
       <Header categories={categories} cartCount={cart.lines.length} />
 
       <main>
         {/* --- Accroche -----------------------------------------------------
-            Asymétrique : le texte occupe deux colonnes sur cinq, l'image le
-            reste. Une accroche centrée sur fond dégradé est le réflexe par
-            défaut ; ici l'objet vendu prend la place, ce qui est plus honnête
-            pour une boutique. */}
-        <section className="mx-auto max-w-7xl px-4 pt-10 lg:px-8 lg:pt-16">
-          <div className="grid items-center gap-10 lg:grid-cols-5 lg:gap-14">
-            <div className="lg:col-span-2">
-              <p className="text-sm font-medium tracking-wide text-saffron uppercase">
-                Nouvelle collection
-              </p>
-              <h1 className="mt-4 text-4xl font-bold text-ink-900 sm:text-5xl lg:text-6xl">
+            Bande beige pleine largeur : elle sépare l'entrée du site du reste
+            de la page, qui revient au fond clair. Le texte occupe la gauche,
+            la photo du produit mis en avant la droite — une accroche qui ne
+            montre rien de ce qu'elle vend est une affiche, pas une boutique. */}
+        <section className="bg-linear-to-br from-walnut-100 via-walnut-50 to-clay-100">
+          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-20">
+            <div>
+              <h1 className="text-4xl leading-[1.08] font-bold text-ink-900 sm:text-5xl lg:text-6xl">
                 Le nécessaire,
                 <br />
-                bien choisi.
+                <span className="text-walnut-500">bien choisi.</span>
               </h1>
-              <p className="mt-5 max-w-md text-lg text-ink-600">
+              <p className="mt-5 max-w-md text-lg text-ink-700">
                 Du canapé au paquet de riz : une sélection courte, des marques
                 identifiées, et des prix qui tiennent sans promotion permanente.
               </p>
@@ -114,151 +161,185 @@ export default async function HomePage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 {primaryCategory ? (
                   <ButtonLink href={`/rayons/${primaryCategory.slug}`} size="lg" className="px-7">
-                    Découvrir {primaryCategory.name.toLowerCase()}
+                    Magasiner maintenant
                   </ButtonLink>
                 ) : null}
                 <ButtonLink href="/nouveautes" variant="secondary" size="lg">
                   Voir les nouveautés
                 </ButtonLink>
               </div>
+
+              {/* Les trois promesses sous l'accroche, pas en bande séparée :
+                  elles répondent aux questions qu'on se pose avant de cliquer,
+                  et les reléguer plus bas revenait à les poser trop tard. */}
+              <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
+                {guarantees.slice(0, 3).map((item) => (
+                  <li key={item.title} className="flex items-center gap-2.5">
+                    <item.icon aria-hidden className="size-5 shrink-0 text-walnut-500" />
+                    <span className="text-sm leading-tight">
+                      <span className="block font-medium text-ink-900">{item.title}</span>
+                      <span className="block text-ink-600">{item.detail}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <div className="lg:col-span-3">
+            {hero?.imageUrl ? (
               <TiltFrame>
-                <div className="ratio-wide relative overflow-hidden rounded-card bg-clay-100 shadow-card">
-                  {hero?.imageUrl ? (
-                    <Image
-                      src={hero.imageUrl}
-                      alt={hero.imageAlt}
-                      fill
-                      sizes="(min-width: 1024px) 60vw, 100vw"
-                      // Image de première vue : chargée en priorité, c'est elle qui
-                      // détermine la vitesse perçue de la page.
-                      priority
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div aria-hidden className="grid size-full place-items-center">
-                      <ImageOff className="size-10 text-ink-400" />
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href={`/produits/${hero.slug}`}
+                  className="relative block aspect-4/3 overflow-hidden rounded-card bg-surface shadow-lift"
+                >
+                  <Image
+                    src={hero.imageUrl}
+                    alt={hero.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    // Image de première vue : chargée en priorité, c'est elle
+                    // qui détermine la vitesse perçue de la page.
+                    priority
+                    className="object-cover"
+                  />
+                  <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-ink-900/80 to-transparent p-5">
+                    <span className="block text-xs tracking-wide text-white/70 uppercase">
+                      {hero.brand ?? 'À la une'}
+                    </span>
+                    <span className="mt-0.5 block font-medium text-white">{hero.name}</span>
+                    <span data-price className="mt-1 block text-lg font-semibold text-white">
+                      {money(hero.priceCents, hero.currencyCode)}
+                    </span>
+                  </span>
+                </Link>
               </TiltFrame>
-            </div>
+            ) : null}
           </div>
         </section>
 
-        {/* --- Réassurance -------------------------------------------------- */}
-        <section aria-label="Nos engagements" className="reveal mx-auto mt-14 max-w-7xl px-4 lg:px-8">
-          <ul className="grid gap-x-6 gap-y-5 border-y border-ink-200/70 py-6 sm:grid-cols-2 lg:grid-cols-4">
-            {guarantees.map((item) => (
-              <li key={item.title} className="flex items-start gap-3">
-                <item.icon aria-hidden className="mt-0.5 size-5 shrink-0 text-cobalt-500" />
-                <span>
-                  <span className="block text-[15px] font-medium text-ink-900">
-                    {item.title}
-                  </span>
-                  <span className="block text-sm text-ink-500">{item.detail}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         {/* --- Rayons -------------------------------------------------------
-            Trois entrées seulement : le catalogue est généraliste, mais une
-            page d'accueil qui propose douze portes n'en fait ouvrir aucune. */}
-        {categories.length > 0 ? (
-          <section aria-labelledby="rayons" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-            <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-              Nos rayons
-            </h2>
+            Toutes les portes du catalogue, sous-rayons compris : la page
+            d'accueil d'une boutique généraliste sert d'abord à trouver son
+            rayon, et en cacher la moitié oblige à passer par le menu. La
+            vignette porte la photo, le titre et ce qu'on y trouve. */}
+        {departments.length > 0 ? (
+          <section aria-labelledby="rayons" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+                Explorez par catégorie
+              </h2>
+              <Link
+                href="/recherche"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
+              >
+                Voir toutes les catégories
+                <ArrowRight aria-hidden className="size-4" />
+              </Link>
+            </div>
 
-            <div className="mt-7 grid gap-5 sm:grid-cols-3">
-              {categories.slice(0, 3).map((department) => (
+            <div className="mt-7 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-6">
+              {departments.map((department) => (
                 <Link
-                  key={department.slug}
-                  href={`/rayons/${department.slug}`}
-                  className="group relative overflow-hidden rounded-card bg-clay-100"
+                  key={department.href}
+                  href={department.href}
+                  className="group flex flex-col rounded-card border border-ink-200/80 bg-surface p-3 transition-colors duration-150 hover:border-walnut-300"
                 >
-                  <div className="relative aspect-[16/9] sm:aspect-[3/4]">
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-clay-50">
                     {department.imageUrl ? (
                       <Image
                         src={department.imageUrl}
                         alt=""
                         fill
-                        sizes="(min-width: 640px) 32vw, 100vw"
+                        sizes="(min-width: 1024px) 16vw, (min-width: 768px) 30vw, 45vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                       />
                     ) : null}
-                    {/* Voile sombre du bas : garantit le contraste du texte quelle
-                        que soit la photo mise en avant par le client. */}
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 bg-gradient-to-t from-ink-900/75 via-ink-900/10 to-transparent"
-                    />
                   </div>
 
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <p className="font-display text-xl font-semibold text-white">
-                      {department.name}
-                    </p>
-                    <p className="mt-0.5 text-sm text-white/85">
-                      {department.productCount} article{department.productCount > 1 ? 's' : ''}
-                    </p>
-                  </div>
+                  <p className="mt-3 font-medium text-ink-900">{department.name}</p>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-ink-500">
+                    {department.detail}
+                  </p>
+
+                  <ArrowRight
+                    aria-hidden
+                    className="mt-3 size-4 self-end text-ink-400 transition-colors duration-150 group-hover:text-walnut-600"
+                  />
                 </Link>
               ))}
             </div>
           </section>
         ) : null}
 
-        {/* --- Sélection ----------------------------------------------------- */}
+        {/* --- Offre en cours ------------------------------------------------
+            Une bande pleine largeur pour la remise du moment, prise sur les
+            promotions réelles : annoncer « jusqu'à -50 % » sans que le
+            catalogue le porte est la plus facile des promesses invérifiables. */}
+        {bestDiscount ? (
+          <section aria-labelledby="offre" className="reveal mt-16 bg-walnut-100">
+            <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-2 lg:gap-14">
+              <div className="relative order-last aspect-16/10 lg:order-first lg:aspect-auto lg:h-full lg:min-h-72">
+                {bestDiscount.imageUrl ? (
+                  <Image
+                    src={bestDiscount.imageUrl}
+                    alt={bestDiscount.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                ) : null}
+              </div>
+
+              <div className="px-4 pb-12 lg:px-0 lg:py-14">
+                <h2 id="offre" className="text-3xl font-bold text-ink-900 sm:text-4xl">
+                  Jusqu’à {discountRate(bestDiscount.priceCents, bestDiscount.compareAtCents!)} sur
+                  une sélection de produits
+                </h2>
+                <p className="mt-4 max-w-md text-ink-700">
+                  Les remises en cours, avec leur date de fin. Le prix barré est celui que nous
+                  pratiquions — pas un prix de référence inventé pour l’occasion.
+                </p>
+                <div className="mt-7">
+                  <ButtonLink href="/promotions" size="lg">
+                    Découvrir la sélection
+                  </ButtonLink>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* --- Les plus populaires ------------------------------------------
+            Triés par note réelle, pas par choix éditorial : « populaire » est
+            une mesure, et l'afficher sans la mesurer serait un classement
+            déguisé. Les onglets filtrent par rayon sans quitter la page. */}
         {rest.length > 0 ? (
-          <section aria-labelledby="selection" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
+          <section aria-labelledby="populaires" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h2 id="selection" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                  La sélection du moment
+                <h2 id="populaires" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+                  Les plus populaires
                 </h2>
                 <p className="mt-2 text-ink-600">
-                  {rest.length} article{rest.length > 1 ? 's' : ''} choisis, renouvelés chaque semaine.
+                  {rest.length} article{rest.length > 1 ? 's' : ''} les mieux notés par nos clients.
                 </p>
               </div>
 
               <Link
                 href="/nouveautes"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600 transition-colors duration-150 hover:text-cobalt-700"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
               >
                 Tout voir
                 <ArrowRight aria-hidden className="size-4" />
               </Link>
             </div>
 
-            {/* Composition à deux poids.
-                Le premier article occupe deux colonnes et quatre autres se
-                rangent à côté : une grille où toutes les tuiles font la même
-                taille ne dit pas par où commencer, et l'œil la parcourt sans
-                s'arrêter. Le reste du catalogue continue en rail juste
-                dessous, où le défilement latéral évite d'empiler quatre
-                rangées de plus. */}
-            <div className="mt-8 grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2">
-                <ProductCard product={rest[0]} priority feature />
-              </div>
-
-              <div className="grid grid-cols-2 gap-6 lg:grid-cols-1 lg:gap-6">
-                {rest.slice(1, 3).map((product) => (
-                  <ProductCard key={product.id} product={product} priority />
-                ))}
-              </div>
+            <div className="mt-7">
+              <PopularProducts
+                products={rest}
+                departments={departmentMembers}
+                newIds={newIds}
+              />
             </div>
-
-            {rest.length > 3 ? (
-              <div className="mt-10">
-                <ProductRail products={rest.slice(3)} />
-              </div>
-            ) : null}
           </section>
         ) : null}
 
@@ -292,7 +373,7 @@ export default async function HomePage() {
                     ) : null}
                   </div>
 
-                  <p className="mt-6 flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600">
+                  <p className="mt-6 flex items-center gap-1.5 text-[15px] font-medium text-walnut-600">
                     {collection.productCount} article{collection.productCount > 1 ? 's' : ''}
                     <ArrowRight
                       aria-hidden
@@ -317,7 +398,7 @@ export default async function HomePage() {
             grande taille de la page après le titre — c'est lui qu'on retient,
             et c'est ce qui différencie un propriétaire unique d'une place de
             marché. */}
-        <section aria-labelledby="pourquoi" className="reveal mt-20 bg-ink-900">
+        <section aria-labelledby="pourquoi" className="reveal mt-16 bg-walnut-900">
           <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-20">
             <h2 id="pourquoi" className="max-w-xl text-2xl font-bold text-white sm:text-3xl">
               Pourquoi ici plutôt qu’ailleurs
@@ -459,7 +540,7 @@ export default async function HomePage() {
 
               <Link
                 href="/blog"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-cobalt-600 transition-colors duration-150 hover:text-cobalt-700"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
               >
                 Tous les articles
                 <ArrowRight aria-hidden className="size-4" />
@@ -489,22 +570,24 @@ export default async function HomePage() {
           </section>
         ) : null}
 
-        {/* --- Lettre d'information ---------------------------------------
-            Bande sombre : elle marque une rupture volontaire avec le reste de
-            la page, pour signaler que ce n'est plus un rayon mais un dernier
-            geste avant de partir. */}
-        <section className="reveal mt-20 bg-ink-900">
-          <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
-            <p className="text-sm font-medium tracking-wide text-white/60 uppercase">
-              Lettre d’information
-            </p>
-            <h2 className="mt-3 max-w-lg text-2xl font-bold text-white sm:text-3xl">
-              Les nouveautés et les promotions, une fois par semaine.
-            </h2>
-            <p className="mt-3 max-w-md text-white/70">
-              Pas de sollicitation quotidienne — un seul courriel, désinscription en un clic.
-            </p>
-            <NewsletterForm />
+        {/* --- Garanties -----------------------------------------------------
+            Les quatre engagements, juste avant le pied de page : c'est le
+            dernier doute à lever pour qui a parcouru la page sans acheter.
+            La lettre d'information, elle, vit désormais dans le pied de page,
+            où elle est atteignable depuis n'importe quel écran. */}
+        <section aria-label="Nos engagements" className="reveal mt-16 border-y border-ink-200/70 bg-walnut-50/60">
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+            {guarantees.map((item) => (
+              <div key={item.title} className="flex items-center gap-4">
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-surface">
+                  <item.icon aria-hidden className="size-5 text-walnut-600" />
+                </span>
+                <span>
+                  <span className="block font-medium text-ink-900">{item.title}</span>
+                  <span className="block text-sm text-ink-600">{item.detail}</span>
+                </span>
+              </div>
+            ))}
           </div>
         </section>
       </main>

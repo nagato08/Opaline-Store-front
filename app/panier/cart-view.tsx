@@ -259,7 +259,7 @@ export function CartView({ initialCart }: { initialCart: Cart }) {
             value={couponCode}
             onChange={(event) => setCouponCode(event.target.value)}
             placeholder="Code promo"
-            className="h-11 min-w-0 flex-1 rounded-control border border-ink-300 px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="h-11 min-w-0 flex-1 rounded-control border border-ink-300 px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
           <button
             type="submit"

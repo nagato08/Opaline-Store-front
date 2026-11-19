@@ -119,7 +119,7 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
                       className={cn(
                         'rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150',
                         active
-                          ? 'border-ink-900 bg-ink-900 text-white'
+                          ? 'border-walnut-500 bg-walnut-500 text-white'
                           : 'border-ink-300 text-ink-700 hover:border-ink-500',
                         !available && 'cursor-not-allowed opacity-40',
                       )}
@@ -197,7 +197,7 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
              pièce, le clavier numérique du téléphone n'a pas à proposer une
              virgule. */
           inputMode={variant?.measure ? 'decimal' : 'numeric'}
-          className="h-11 w-28 rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+          className="h-11 w-28 rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
         />
       </div>
 
@@ -258,10 +258,10 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
       {status === 'done' ? (
         <p role="status" className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-700">
           <span className="text-success">Ajouté à votre panier.</span>
-          <Link href="/panier" className="font-medium text-cobalt-600 hover:underline">
+          <Link href="/panier" className="font-medium text-walnut-600 hover:underline">
             Voir le panier
           </Link>
-          <Link href="/commande" className="font-medium text-cobalt-600 hover:underline">
+          <Link href="/commande" className="font-medium text-walnut-600 hover:underline">
             Commander
           </Link>
         </p>

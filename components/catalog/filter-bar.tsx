@@ -59,7 +59,7 @@ export function FilterBar({ brands, resultCount }: { brands: Brand[]; resultCoun
           <SlidersHorizontal aria-hidden className="size-4 text-ink-500" />
           Affiner
           {filterCount > 0 ? (
-            <span className="rounded-full bg-ink-900 px-2 py-0.5 text-xs text-white" data-numeric>
+            <span className="rounded-full bg-walnut-500 px-2 py-0.5 text-xs text-white" data-numeric>
               {filterCount}
             </span>
           ) : null}
@@ -78,7 +78,7 @@ export function FilterBar({ brands, resultCount }: { brands: Brand[]; resultCoun
                 else next.delete('tri');
               })
             }
-            className="h-10 rounded-control border border-ink-300 bg-surface px-3 text-sm text-ink-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="h-10 rounded-control border border-ink-300 bg-surface px-3 text-sm text-ink-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           >
             {SORTS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -112,7 +112,7 @@ export function FilterBar({ brands, resultCount }: { brands: Brand[]; resultCoun
                 next.delete('stock');
               })
             }
-            className="flex items-center gap-1.5 text-sm text-cobalt-600 hover:underline"
+            className="flex items-center gap-1.5 text-sm text-walnut-600 hover:underline"
           >
             <X aria-hidden className="size-3.5" />
             Tout effacer
@@ -139,7 +139,7 @@ export function FilterBar({ brands, resultCount }: { brands: Brand[]; resultCoun
                   className={cn(
                     'rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150',
                     active
-                      ? 'border-ink-900 bg-ink-900 text-white'
+                      ? 'border-walnut-500 bg-walnut-500 text-white'
                       : 'border-ink-300 text-ink-700 hover:border-ink-500',
                   )}
                 >

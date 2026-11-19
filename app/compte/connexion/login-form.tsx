@@ -65,7 +65,7 @@ export function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
         </div>
 
@@ -79,7 +79,7 @@ export function LoginForm() {
             </label>
             <Link
               href="/compte/mot-de-passe-oublie"
-              className="text-sm text-cobalt-600 hover:underline"
+              className="text-sm text-walnut-600 hover:underline"
             >
               Oublié ?
             </Link>
@@ -91,7 +91,7 @@ export function LoginForm() {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
         </div>
 

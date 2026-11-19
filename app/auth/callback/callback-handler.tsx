@@ -72,7 +72,7 @@ export function CallbackHandler() {
         <p className="text-ink-900">Vous êtes connecté.</p>
         <Link
           href="/compte"
-          className="mt-2 inline-block font-medium text-cobalt-600 hover:underline"
+          className="mt-2 inline-block font-medium text-walnut-600 hover:underline"
         >
           Aller à mon compte
         </Link>

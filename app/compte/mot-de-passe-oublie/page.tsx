@@ -33,7 +33,7 @@ export default async function ForgotPasswordPage() {
           </div>
 
           <p className="mt-6 text-sm text-ink-500">
-            <Link href="/compte/connexion" className="font-medium text-cobalt-600 hover:underline">
+            <Link href="/compte/connexion" className="font-medium text-walnut-600 hover:underline">
               Revenir à la connexion
             </Link>
           </p>

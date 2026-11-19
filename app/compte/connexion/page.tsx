@@ -21,7 +21,7 @@ export default async function LoginPage() {
           <h1 className="text-3xl font-bold text-ink-900">Connexion</h1>
           <p className="mt-2 text-ink-600">
             Pas de compte ?{' '}
-            <Link href="/compte/inscription" className="font-medium text-cobalt-600 hover:underline">
+            <Link href="/compte/inscription" className="font-medium text-walnut-600 hover:underline">
               Inscrivez-vous
             </Link>
           </p>

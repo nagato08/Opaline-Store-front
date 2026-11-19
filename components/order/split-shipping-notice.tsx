@@ -87,7 +87,7 @@ export function SplitShippingNotice({
               type="button"
               onClick={() => setOpen(expanded ? null : group.constraint)}
               aria-expanded={expanded}
-              className="mt-1 text-sm text-cobalt-600 hover:underline"
+              className="mt-1 text-sm text-walnut-600 hover:underline"
             >
               {lines.length} article{lines.length > 1 ? 's' : ''}
               {expanded ? ' — masquer' : ' — voir'}

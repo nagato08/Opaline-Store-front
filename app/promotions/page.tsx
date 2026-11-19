@@ -73,7 +73,7 @@ export default async function PromotionsPage() {
               </p>
               <Link
                 href="/nouveautes"
-                className="mt-5 text-sm font-medium text-cobalt-600 hover:underline"
+                className="mt-5 text-sm font-medium text-walnut-600 hover:underline"
               >
                 Voir les nouveautés
               </Link>

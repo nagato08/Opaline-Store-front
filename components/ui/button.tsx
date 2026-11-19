@@ -14,7 +14,7 @@ import { cn } from '@/lib/cn';
  * deux composants distincts qui partagent la même apparence.
  */
 const variants = {
-  primary: 'bg-cobalt-500 text-white hover:bg-cobalt-600 active:bg-cobalt-700',
+  primary: 'bg-walnut-500 text-white hover:bg-walnut-600 active:bg-walnut-700',
   secondary:
     'bg-surface text-ink-900 ring-1 ring-inset ring-ink-300 hover:bg-ink-50 active:bg-ink-100',
   ghost: 'text-ink-700 hover:bg-ink-100 active:bg-ink-200',

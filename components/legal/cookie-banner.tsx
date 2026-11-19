@@ -123,7 +123,7 @@ export function CookieBanner() {
           <p className="mt-1 text-sm text-ink-600">
             Les cookies nécessaires au panier et à la connexion fonctionnent sans votre accord.
             Nous vous demandons seulement de quoi mesurer la fréquentation.{' '}
-            <Link href="/mentions-legales" className="font-medium text-cobalt-600 hover:underline">
+            <Link href="/mentions-legales" className="font-medium text-walnut-600 hover:underline">
               En savoir plus
             </Link>
           </p>

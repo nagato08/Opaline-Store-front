@@ -48,7 +48,7 @@ export default async function AccountPage() {
                 Commandes récentes
               </h2>
               {orders.length > 0 ? (
-                <Link href="/compte/commandes" className="inline-flex items-center gap-1.5 text-sm font-medium text-cobalt-600 hover:underline">
+                <Link href="/compte/commandes" className="inline-flex items-center gap-1.5 text-sm font-medium text-walnut-600 hover:underline">
                   Tout voir
                   <ArrowRight aria-hidden className="size-3.5" />
                 </Link>

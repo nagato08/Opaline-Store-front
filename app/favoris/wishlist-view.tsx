@@ -41,7 +41,7 @@ export function WishlistView({ items }: { items: WishlistItem[] }) {
         <p className="mt-1.5 text-ink-600">
           Le cœur sur une fiche produit met l’article de côté, sans l’acheter.
         </p>
-        <Link href="/" className="mt-5 inline-block font-medium text-cobalt-600 hover:underline">
+        <Link href="/" className="mt-5 inline-block font-medium text-walnut-600 hover:underline">
           Parcourir le catalogue
         </Link>
       </div>

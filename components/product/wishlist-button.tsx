@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Heart } from 'lucide-react';
 import { ApiError } from '@/lib/api';
+import { cn } from '@/lib/cn';
 import { addToWishlist } from '@/lib/data/wishlist';
 
 /**
@@ -23,16 +24,30 @@ export function WishlistButton({
   productId,
   variantId,
   productSlug,
+  compact = false,
+  productName,
 }: {
   productId: string;
   variantId?: string;
   /** Adresse de retour après connexion. */
   productSlug: string;
+  /**
+   * Forme réduite pour les vignettes : un cœur seul, posé sur la photo.
+   * La fiche produit garde le bouton large avec son libellé — là, rien ne
+   * presse et le mot lève l'ambiguïté du pictogramme.
+   */
+  compact?: boolean;
+  /** Nécessaire en forme réduite, où aucun texte n'accompagne le cœur. */
+  productName?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'pending' | 'done'>('idle');
 
-  async function add() {
+  async function add(event?: React.MouseEvent) {
+    /* Sur une vignette, le lien du titre recouvre toute la carte : sans cet
+       arrêt, un clic sur le cœur ouvrirait aussi la fiche. */
+    event?.preventDefault();
+    event?.stopPropagation();
     setStatus('pending');
 
     try {
@@ -45,6 +60,24 @@ export function WishlistButton({
       }
       setStatus('idle');
     }
+  }
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={add}
+        disabled={status === 'done'}
+        aria-label={
+          status === 'done'
+            ? `${productName ?? 'Ce produit'} est dans vos favoris`
+            : `Mettre ${productName ?? 'ce produit'} de côté`
+        }
+        className="relative z-10 grid size-9 place-items-center rounded-full bg-surface/90 text-ink-500 backdrop-blur-sm transition-colors duration-150 hover:text-walnut-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500 disabled:text-saffron"
+      >
+        <Heart aria-hidden className={cn('size-4.5', status === 'done' && 'fill-current')} />
+      </button>
+    );
   }
 
   return (

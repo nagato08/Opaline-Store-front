@@ -80,7 +80,7 @@ function EmptyShelf({ title, description }: { title: string; description: string
       </span>
       <h2 className="mt-4 text-lg font-semibold text-ink-900">{title}</h2>
       <p className="mt-1.5 max-w-sm text-ink-600">{description}</p>
-      <Link href="/" className="mt-5 text-sm font-medium text-cobalt-600 hover:underline">
+      <Link href="/" className="mt-5 text-sm font-medium text-walnut-600 hover:underline">
         Revenir à l’accueil
       </Link>
     </div>

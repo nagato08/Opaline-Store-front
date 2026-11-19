@@ -211,7 +211,7 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
                   index < stepIndex
                     ? 'bg-success-soft text-success'
                     : index === stepIndex
-                      ? 'bg-ink-900 text-white'
+                      ? 'bg-walnut-500 text-white'
                       : 'bg-ink-100 text-ink-500',
                 )}
                 aria-current={index === stepIndex ? 'step' : undefined}
@@ -240,7 +240,7 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+                className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
               />
             </div>
 
@@ -269,7 +269,7 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
                   onChange={(event) =>
                     setAddress((a) => ({ ...a, countryCode: event.target.value, region: '' }))
                   }
-                  className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+                  className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
                 >
                   <option value="FR">France</option>
                   <option value="CA">Canada</option>
@@ -286,7 +286,7 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
                     required
                     value={address.region ?? ''}
                     onChange={(event) => setAddress((a) => ({ ...a, region: event.target.value }))}
-                    className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+                    className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
                   >
                     <option value="" disabled>
                       Choisir…
@@ -556,7 +556,7 @@ function Field({
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+        className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
       />
     </div>
   );

@@ -68,7 +68,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
               defaultValue={q}
               autoFocus
               placeholder="Rechercher un canapé, du riz basmati…"
-              className="h-12 w-full rounded-control border border-ink-300 pl-11 pr-4 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+              className="h-12 w-full rounded-control border border-ink-300 pl-11 pr-4 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
             />
           </form>
 
@@ -83,7 +83,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
           {correctedTerm ? (
             <p className="mt-1.5 text-sm text-ink-600">
               Résultats rapprochés de{' '}
-              <Link href={filterHref({ q: correctedTerm })} className="font-medium text-cobalt-600 hover:underline">
+              <Link href={filterHref({ q: correctedTerm })} className="font-medium text-walnut-600 hover:underline">
                 « {correctedTerm} »
               </Link>
               .
@@ -172,7 +172,7 @@ export default async function SearchPage({ searchParams }: PageProps<'/recherche
                   aria-hidden
                   className={cn(
                     'grid size-4 shrink-0 place-items-center rounded border',
-                    inStockOnly ? 'border-ink-900 bg-ink-900 text-white' : 'border-ink-300',
+                    inStockOnly ? 'border-walnut-500 bg-walnut-500 text-white' : 'border-ink-300',
                   )}
                 >
                   {inStockOnly ? <Check className="size-3" /> : null}

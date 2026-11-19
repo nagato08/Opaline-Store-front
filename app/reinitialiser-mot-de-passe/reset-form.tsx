@@ -46,7 +46,7 @@ export function ResetForm() {
         Ce lien est incomplet. Recommencez depuis{' '}
         <Link
           href="/compte/mot-de-passe-oublie"
-          className="font-medium text-cobalt-600 underline"
+          className="font-medium text-walnut-600 underline"
         >
           la demande de réinitialisation
         </Link>

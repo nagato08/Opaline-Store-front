@@ -189,7 +189,7 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
 
                   {food.requiresColdChain ? (
                     <p className="flex items-center gap-2 text-sm text-ink-700">
-                      <Snowflake aria-hidden className="size-4 shrink-0 text-cobalt-600" />
+                      <Snowflake aria-hidden className="size-4 shrink-0 text-walnut-600" />
                       Chaîne du froid respectée jusqu’à la livraison.
                     </p>
                   ) : null}
@@ -276,7 +276,7 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                 </h2>
                 <Link
                   href={`/rayons/${primaryCategory.slug}`}
-                  className="text-[15px] font-medium text-cobalt-600 hover:underline"
+                  className="text-[15px] font-medium text-walnut-600 hover:underline"
                 >
                   Voir tout {primaryCategory.name.toLowerCase()}
                 </Link>

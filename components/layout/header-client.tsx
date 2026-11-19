@@ -85,8 +85,12 @@ export function HeaderClient({
           depuis le back-office, avec ses dates et son ciblage. Il vit dans la
           mise en page racine — voir `components/marketing/campaigns.tsx`. */}
 
-      <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-canvas/90 backdrop-blur-md">
-        <div className="mx-auto flex h-18 max-w-7xl items-center gap-4 px-4 lg:px-8">
+      <header className="sticky top-0 z-40 bg-surface">
+        {/* Rangée haute : l'enseigne, la recherche, le compte.
+            La recherche occupe le centre parce que c'est le geste le plus
+            fréquent d'un catalogue qu'on ne connaît pas par cœur ; reléguée
+            derrière une loupe, elle demandait un clic pour exister. */}
+        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 lg:px-8">
           <Button
             variant="ghost"
             size="icon"
@@ -98,155 +102,188 @@ export function HeaderClient({
             <Menu aria-hidden className="size-5" />
           </Button>
 
-          <Link
-            href="/"
-            className="font-display text-xl font-bold tracking-tight text-ink-900"
-          >
-            {storeName}
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
+            <span
+              aria-hidden
+              className="grid size-10 place-items-center rounded-xl bg-walnut-500 text-white"
+            >
+              <ShoppingBag className="size-5" />
+            </span>
+            <span className="leading-tight">
+              <span className="block font-display text-xl font-bold tracking-tight text-ink-900">
+                {storeName}
+              </span>
+              <span className="hidden text-xs text-ink-500 sm:block">
+                Tout ce dont vous avez besoin
+              </span>
+            </span>
           </Link>
 
-          <nav ref={navRef} aria-label="Rayons" className="ml-6 hidden lg:block">
-            <ul className="flex items-center gap-1">
-              {categories.map((department) => {
-                const expanded = openDept === department.slug;
+          {/* `action` en GET : la recherche reste une URL partageable, et le
+              formulaire fonctionne avant même que React soit hydraté. */}
+          <form
+            action="/recherche"
+            role="search"
+            className="mx-auto hidden w-full max-w-xl md:block"
+          >
+            <label htmlFor="recherche-entete" className="sr-only">
+              Rechercher un produit
+            </label>
+            <div className="flex h-12 items-center gap-2 rounded-full border border-ink-200 bg-surface pr-1.5 pl-5 transition-colors duration-150 focus-within:border-walnut-400">
+              <input
+                id="recherche-entete"
+                name="q"
+                type="search"
+                autoComplete="off"
+                placeholder="Rechercher un produit, une marque…"
+                className="min-w-0 flex-1 bg-transparent text-[15px] text-ink-900 placeholder:text-ink-400 focus:outline-none"
+              />
+              <button
+                type="submit"
+                aria-label="Lancer la recherche"
+                className="grid size-9 shrink-0 place-items-center rounded-full bg-walnut-500 text-white transition-colors duration-150 hover:bg-walnut-600"
+              >
+                <Search aria-hidden className="size-4" />
+              </button>
+            </div>
+          </form>
 
-                return (
-                  <li
-                    key={department.slug}
-                    className="relative"
-                    onMouseEnter={() => open(department.slug)}
-                    onMouseLeave={scheduleClose}
-                  >
-                    <button
-                      type="button"
-                      aria-expanded={expanded}
-                      aria-controls={`mega-${department.slug}`}
-                      onFocus={() => open(department.slug)}
-                      onClick={() => setOpenDept(expanded ? null : department.slug)}
-                      className={cn(
-                        'flex items-center gap-1 rounded-control px-3 py-2 text-[15px] transition-colors duration-150',
-                        expanded
-                          ? 'bg-ink-100 text-ink-900'
-                          : 'text-ink-700 hover:bg-ink-100 hover:text-ink-900',
-                      )}
-                    >
-                      {department.name}
-                      <ChevronDown
-                        aria-hidden
-                        className={cn('size-3.5 transition-transform duration-150', expanded && 'rotate-180')}
-                      />
-                    </button>
-
-                    {expanded ? (
-                      <div
-                        id={`mega-${department.slug}`}
-                        className="animate-rise absolute top-[calc(100%+0.5rem)] left-0 z-50 flex w-96 overflow-hidden rounded-card bg-surface shadow-lift ring-1 ring-ink-200/70"
-                      >
-                        <div className="min-w-0 flex-1 p-4">
-                          {department.children.length > 0 ? (
-                            <ul>
-                              {department.children.map((subcategory) => (
-                                <li key={subcategory.slug}>
-                                  <Link
-                                    href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
-                                    className="block rounded-control px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900"
-                                  >
-                                    {subcategory.name}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : null}
-                          <Link
-                            href={`/rayons/${department.slug}`}
-                            className="mt-1 block rounded-control px-3 py-2 text-sm font-medium text-cobalt-600 transition-colors duration-150 hover:bg-cobalt-50"
-                          >
-                            Tout le rayon {department.name.toLowerCase()}
-                          </Link>
-                        </div>
-
-                        {department.imageUrl ? (
-                          <Link
-                            href={`/rayons/${department.slug}`}
-                            className="group relative hidden w-32 shrink-0 sm:block"
-                          >
-                            <Image
-                              src={department.imageUrl}
-                              alt=""
-                              fill
-                              sizes="128px"
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          </Link>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })}
-
-              {plainLinks.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'rounded-control px-3 py-2 text-[15px] transition-colors duration-150',
-                      item.accent
-                        ? 'font-medium text-ink-900 hover:bg-ink-100'
-                        : 'text-ink-700 hover:bg-ink-100 hover:text-ink-900',
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
             <Link
               href="/recherche"
               aria-label="Rechercher"
-              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100"
+              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100 md:hidden"
             >
               <Search aria-hidden className="size-5" />
             </Link>
 
-            {/* Un lien, pas un bouton : l'icône portait déjà son `aria-label`
-                mais ne menait nulle part. */}
-            <Link
-              href="/favoris"
-              aria-label="Mes favoris"
-              className="hidden size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100 sm:grid"
-            >
-              <Heart aria-hidden className="size-5" />
-            </Link>
-
-            <Link
-              href="/compte/connexion"
-              aria-label="Mon compte"
-              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100"
-            >
+            <HeaderAction href="/compte/connexion" label="Compte">
               <User aria-hidden className="size-5" />
-            </Link>
+            </HeaderAction>
 
-            <Link
+            <HeaderAction href="/favoris" label="Favoris" className="hidden sm:flex">
+              <Heart aria-hidden className="size-5" />
+            </HeaderAction>
+
+            <HeaderAction
               href="/panier"
+              label="Panier"
               // Le libellé porte le compte : un lecteur d'écran doit entendre
               // « Panier, 2 articles », pas « Panier » puis un chiffre orphelin.
-              aria-label={`Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`}
-              className="relative inline-flex size-11 items-center justify-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100"
+              describedAs={`Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`}
             >
               <ShoppingBag aria-hidden className="size-5" />
-              {cartCount > 0 ? (
-                <span
-                  aria-hidden
-                  className="absolute top-1.5 right-1.5 grid min-w-4.5 place-items-center rounded-full bg-cobalt-500 px-1 font-mono text-[11px] leading-4 font-medium text-white"
-                >
-                  {cartCount}
-                </span>
-              ) : null}
-            </Link>
+              <span
+                aria-hidden
+                className={cn(
+                  'absolute -top-1 -right-1 grid min-w-5 place-items-center rounded-full px-1 font-mono text-[11px] leading-5 font-medium',
+                  cartCount > 0 ? 'bg-walnut-500 text-white' : 'bg-ink-200 text-ink-600',
+                )}
+              >
+                {cartCount}
+              </span>
+            </HeaderAction>
+          </div>
+        </div>
+
+        {/* Rangée basse : les rayons.
+            Séparée de l'enseigne parce qu'elle change de rôle — la première
+            rangée sert à s'orienter dans le site, celle-ci à entrer dans le
+            catalogue. Le fond l'en distingue sans trait de séparation. */}
+        <div className="border-y border-ink-200/70 bg-walnut-50/60">
+          <div className="mx-auto flex h-12 max-w-7xl items-center gap-2 px-4 lg:px-8">
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="flex shrink-0 items-center gap-2 rounded-control py-1.5 pr-3 text-sm font-medium text-ink-800 transition-colors duration-150 hover:text-walnut-600 lg:pl-1"
+            >
+              <Menu aria-hidden className="size-4" />
+              Toutes les catégories
+            </button>
+
+            <nav ref={navRef} aria-label="Rayons" className="hidden min-w-0 lg:block">
+              <ul className="flex items-center">
+                <li>
+                  <Link
+                    href="/"
+                    className="rounded-control px-3 py-2 text-sm font-medium text-walnut-600"
+                  >
+                    Accueil
+                  </Link>
+                </li>
+
+                {categories.map((department) => {
+                  const expanded = openDept === department.slug;
+
+                  return (
+                    <li
+                      key={department.slug}
+                      className="relative"
+                      onMouseEnter={() => open(department.slug)}
+                      onMouseLeave={scheduleClose}
+                    >
+                      <Link
+                        href={`/rayons/${department.slug}`}
+                        aria-expanded={expanded}
+                        onFocus={() => open(department.slug)}
+                        className="flex items-center gap-1 rounded-control px-3 py-2 text-sm whitespace-nowrap text-ink-700 transition-colors duration-150 hover:text-walnut-600"
+                      >
+                        {department.name}
+                        {department.children.length > 0 ? (
+                          <ChevronDown
+                            aria-hidden
+                            className={cn(
+                              'size-3.5 text-ink-400 transition-transform duration-150',
+                              expanded && 'rotate-180',
+                            )}
+                          />
+                        ) : null}
+                      </Link>
+
+                      {expanded && department.children.length > 0 ? (
+                        <div className="absolute top-full left-0 z-10 w-60 rounded-card border border-ink-200 bg-surface p-2 shadow-lift">
+                          <ul>
+                            {department.children.map((subcategory) => (
+                              <li key={subcategory.slug}>
+                                <Link
+                                  href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
+                                  className="block rounded-control px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-walnut-50 hover:text-ink-900"
+                                >
+                                  {subcategory.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+
+                {plainLinks.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'rounded-control px-3 py-2 text-sm whitespace-nowrap transition-colors duration-150 hover:text-walnut-600',
+                        item.accent ? 'font-medium text-ink-900' : 'text-ink-700',
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+
+                <li>
+                  <Link
+                    href="/contact"
+                    className="rounded-control px-3 py-2 text-sm whitespace-nowrap text-ink-700 transition-colors duration-150 hover:text-walnut-600"
+                  >
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </nav>
           </div>
         </div>
       </header>
@@ -303,7 +340,7 @@ export function HeaderClient({
                       <Link
                         href={`/rayons/${department.slug}`}
                         onClick={() => setMenuOpen(false)}
-                        className="block rounded-control px-3 py-2.5 text-sm font-medium text-cobalt-600"
+                        className="block rounded-control px-3 py-2.5 text-sm font-medium text-walnut-600"
                       >
                         Tout le rayon
                       </Link>
@@ -333,5 +370,43 @@ export function HeaderClient({
         </div>
       </dialog>
     </>
+  );
+}
+
+/**
+ * Action de l'en-tête : une icône, son libellé dessous.
+ *
+ * Le libellé écrit évite la devinette d'un pictogramme seul — un cœur peut
+ * aussi bien dire « favoris » que « j'aime » — et il donne à la cible tactile
+ * la hauteur nécessaire sans gonfler l'icône.
+ */
+function HeaderAction({
+  href,
+  label,
+  describedAs,
+  className,
+  children,
+}: {
+  href: string;
+  label: string;
+  /** Remplace le libellé lu, quand il doit porter plus que le mot affiché. */
+  describedAs?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={describedAs}
+      className={cn(
+        'flex flex-col items-center gap-0.5 rounded-control px-2.5 py-1.5 text-ink-700 transition-colors duration-150 hover:text-walnut-600',
+        className,
+      )}
+    >
+      <span className="relative grid place-items-center">{children}</span>
+      <span aria-hidden className="text-[11px] leading-none font-medium">
+        {label}
+      </span>
+    </Link>
   );
 }

@@ -121,10 +121,10 @@ function Notice({ campaign }: { campaign: Campaign }) {
   if (closed) return null;
 
   return (
-    <div className="border-b border-cobalt-200 bg-cobalt-50">
+    <div className="border-b border-walnut-200 bg-walnut-50">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-cobalt-700">{campaign.title}</p>
+          <p className="text-sm font-medium text-walnut-700">{campaign.title}</p>
           {campaign.body ? (
             <p className="mt-0.5 text-sm text-ink-600">{campaign.body}</p>
           ) : null}
@@ -134,7 +134,7 @@ function Notice({ campaign }: { campaign: Campaign }) {
           <Link
             href={campaign.ctaUrl}
             onClick={() => trackCampaign(campaign.id, 'CLICK')}
-            className="shrink-0 text-sm font-medium text-cobalt-600 underline underline-offset-2"
+            className="shrink-0 text-sm font-medium text-walnut-600 underline underline-offset-2"
           >
             {campaign.ctaLabel ?? 'Voir'}
           </Link>
@@ -148,7 +148,7 @@ function Notice({ campaign }: { campaign: Campaign }) {
               setClosed(true);
             }}
             aria-label="Masquer cette annonce"
-            className="shrink-0 rounded-full p-1 text-ink-500 hover:bg-cobalt-100 hover:text-ink-900"
+            className="shrink-0 rounded-full p-1 text-ink-500 hover:bg-walnut-100 hover:text-ink-900"
           >
             <X aria-hidden className="size-4" />
           </button>
@@ -330,7 +330,7 @@ function Popup({
                 trackCampaign(campaign.id, 'CLICK');
                 onClose();
               }}
-              className="inline-flex h-11 items-center rounded-xl bg-cobalt-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-cobalt-600"
+              className="inline-flex h-11 items-center rounded-xl bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
             >
               {campaign.ctaLabel ?? 'Découvrir'}
             </Link>

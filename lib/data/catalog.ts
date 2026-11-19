@@ -46,6 +46,7 @@ type ApiProductCard = {
   ratingAvg: number;
   ratingCount: number;
   isAvailable: boolean;
+  defaultVariantId: string | null;
 };
 
 function toSummary(card: ApiProductCard): ProductSummary {
@@ -63,6 +64,7 @@ function toSummary(card: ApiProductCard): ProductSummary {
     ecoTaxCents: card.ecoTaxCents || undefined,
     ratingAvg: card.ratingAvg || undefined,
     ratingCount: card.ratingCount || undefined,
+    defaultVariantId: card.defaultVariantId,
   };
 }
 

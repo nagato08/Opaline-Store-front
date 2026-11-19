@@ -61,7 +61,7 @@ export function RegisterForm() {
               autoComplete="given-name"
               value={firstName}
               onChange={(event) => setFirstName(event.target.value)}
-              className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+              className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
             />
           </div>
           <div>
@@ -76,7 +76,7 @@ export function RegisterForm() {
               autoComplete="family-name"
               value={lastName}
               onChange={(event) => setLastName(event.target.value)}
-              className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+              className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
             />
           </div>
         </div>
@@ -92,7 +92,7 @@ export function RegisterForm() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
         </div>
 
@@ -111,7 +111,7 @@ export function RegisterForm() {
             minLength={10}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
           <p className="mt-1.5 text-sm text-ink-500">
             10 caractères minimum, avec une minuscule, une majuscule et un

@@ -20,7 +20,7 @@ export default async function ReturnsPolicyPage() {
           <h1 className="text-3xl font-bold text-ink-900 sm:text-4xl">Retours et remboursements</h1>
 
           <div className="mt-8 flex items-start gap-3 rounded-card border border-ink-200/70 p-6">
-            <RotateCcw aria-hidden className="mt-0.5 size-6 shrink-0 text-cobalt-600" />
+            <RotateCcw aria-hidden className="mt-0.5 size-6 shrink-0 text-walnut-600" />
             <div>
               <h2 className="font-display text-lg font-semibold text-ink-900">
                 14 jours pour changer d’avis
@@ -33,7 +33,7 @@ export default async function ReturnsPolicyPage() {
           </div>
 
           <div className="mt-6 flex items-start gap-3 rounded-card border border-ink-200/70 p-6">
-            <ShieldCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-cobalt-600" />
+            <ShieldCheck aria-hidden className="mt-0.5 size-6 shrink-0 text-walnut-600" />
             <div>
               <h2 className="font-display text-lg font-semibold text-ink-900">
                 Produit défectueux ou non conforme
@@ -50,7 +50,7 @@ export default async function ReturnsPolicyPage() {
           </p>
 
           <div className="mt-8">
-            <Link href="/suivi-commande" className="font-medium text-cobalt-600 hover:underline">
+            <Link href="/suivi-commande" className="font-medium text-walnut-600 hover:underline">
               Retrouvez votre commande pour démarrer un retour →
             </Link>
           </div>

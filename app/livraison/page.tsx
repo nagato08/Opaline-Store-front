@@ -46,7 +46,7 @@ export default async function ShippingPolicyPage() {
             {ZONES.map((zone) => (
               <div key={zone.title} className="rounded-card border border-ink-200/70 p-6">
                 <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold text-ink-900">
-                  <Truck aria-hidden className="size-5 text-cobalt-600" />
+                  <Truck aria-hidden className="size-5 text-walnut-600" />
                   {zone.title}
                 </h2>
                 <ul className="mt-3 space-y-2 text-[15px] text-ink-700">
@@ -62,7 +62,7 @@ export default async function ShippingPolicyPage() {
           </div>
 
           <div className="mt-8 flex items-start gap-3 rounded-card bg-clay-50 p-5 text-sm text-ink-700">
-            <Snowflake aria-hidden className="mt-0.5 size-5 shrink-0 text-cobalt-600" />
+            <Snowflake aria-hidden className="mt-0.5 size-5 shrink-0 text-walnut-600" />
             <p>
               Un produit nécessitant la chaîne du froid ne se combine qu’avec les modes de
               livraison compatibles : ils sont seuls proposés à la sélection, plutôt que

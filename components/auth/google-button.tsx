@@ -33,7 +33,7 @@ export function GoogleButton({ label, next }: { label: string; next?: string | n
     <a
       href={`${apiBase()}/auth/google`}
       onClick={remember}
-      className="flex h-12 w-full items-center justify-center gap-3 rounded-control border border-ink-300 bg-surface text-[15px] font-medium text-ink-900 transition-colors duration-150 hover:border-ink-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+      className="flex h-12 w-full items-center justify-center gap-3 rounded-control border border-ink-300 bg-surface text-[15px] font-medium text-ink-900 transition-colors duration-150 hover:border-ink-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
     >
       <GoogleMark />
       {label}

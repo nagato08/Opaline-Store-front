@@ -59,7 +59,7 @@ export function TrackingForm({ initialNumber }: { initialNumber: string }) {
             value={orderNumber}
             onChange={(event) => setOrderNumber(event.target.value)}
             placeholder="CMD-2026-000123"
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
         </div>
         <div>
@@ -72,7 +72,7 @@ export function TrackingForm({ initialNumber }: { initialNumber: string }) {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-500"
+            className="mt-1.5 h-11 w-full rounded-control border border-ink-300 px-3 text-[15px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500"
           />
         </div>
 

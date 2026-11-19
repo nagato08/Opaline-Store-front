@@ -66,7 +66,7 @@ export default async function OrderConfirmationPage({
 
           <p className="mt-6 text-center text-sm text-ink-500">
             Pas de compte ?{' '}
-            <Link href="/compte/inscription" className="font-medium text-cobalt-600 hover:underline">
+            <Link href="/compte/inscription" className="font-medium text-walnut-600 hover:underline">
               Créez-en un
             </Link>{' '}
             pour retrouver cette commande plus tard.

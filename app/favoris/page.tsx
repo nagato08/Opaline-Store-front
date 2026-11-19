@@ -40,7 +40,7 @@ export default async function WishlistPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
                   href="/compte/connexion?suite=/favoris"
-                  className="inline-flex h-11 items-center rounded-xl bg-cobalt-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-cobalt-600"
+                  className="inline-flex h-11 items-center rounded-xl bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
                 >
                   Se connecter
                 </Link>
