@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { X } from 'lucide-react';
 import { listCampaigns, trackCampaign, type Campaign } from '@/lib/data/campaigns';
+import { Countdown } from '@/components/marketing/countdown';
 
 /**
  * Affichage des campagnes programmées depuis le back-office.
@@ -53,6 +54,11 @@ export function Campaigns() {
   );
 
   const bar = leading?.type === 'TOP_BAR' ? leading : undefined;
+
+  /* Le compte à rebours ne concourt pas avec les bandeaux : il porte une
+     opération datée, prend toute la largeur et vit sous l'en-tête plutôt
+     qu'au-dessus de l'enseigne. */
+  const countdown = campaigns.find((campaign) => campaign.type === 'COUNTDOWN');
   const notices = leading && leading.type !== 'TOP_BAR' ? [leading] : [];
   /* Les fenêtres modales ne paraissent que sur l'accueil.
      Ailleurs, elles arrivent sur quelqu'un qui fait déjà quelque chose : lire
@@ -76,6 +82,8 @@ export function Campaigns() {
       {notices.map((campaign) => (
         <Notice key={campaign.id} campaign={campaign} />
       ))}
+
+      {countdown ? <Countdown key={countdown.id} campaign={countdown} /> : null}
 
       {/* Toutes les fenêtres arment leur déclencheur. N'en armer qu'une — la
           plus prioritaire — condamnait les autres : une campagne sur intention
