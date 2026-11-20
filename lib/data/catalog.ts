@@ -47,6 +47,7 @@ type ApiProductCard = {
   ratingCount: number;
   isAvailable: boolean;
   defaultVariantId: string | null;
+  stockLeft: number;
 };
 
 function toSummary(card: ApiProductCard): ProductSummary {
@@ -65,6 +66,7 @@ function toSummary(card: ApiProductCard): ProductSummary {
     ratingAvg: card.ratingAvg || undefined,
     ratingCount: card.ratingCount || undefined,
     defaultVariantId: card.defaultVariantId,
+    stockLeft: card.stockLeft,
   };
 }
 

@@ -165,6 +165,15 @@ export function HeaderClient({
               <Heart aria-hidden className="size-5" />
             </HeaderAction>
 
+            {/* Région vivante : un `aria-label` ne se réannonce pas quand il
+                change, si bien qu'un ajout au panier restait muet. Le badge
+                reste décoratif, ce texte porte l'annonce. */}
+            <span aria-live="polite" className="sr-only">
+              {cartCount === 0
+                ? 'Panier vide'
+                : `Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`}
+            </span>
+
             <HeaderAction
               href="/panier"
               label="Panier"

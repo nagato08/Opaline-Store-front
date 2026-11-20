@@ -12,6 +12,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { ButtonLink } from '@/components/ui/button';
 import { PopularProducts } from '@/components/catalog/popular-products';
+import { ProductCard } from '@/components/product/product-card';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
 import { TiltFrame } from '@/components/marketing/tilt-frame';
 import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
@@ -339,6 +340,40 @@ export default async function HomePage() {
                 departments={departmentMembers}
                 newIds={newIds}
               />
+            </div>
+          </section>
+        ) : null}
+
+        {/* --- Nouveautés -----------------------------------------------------
+            Les dernières entrées au catalogue, en rail : la référence du
+            métier les distingue des « mieux notés » parce qu'elles répondent
+            à une autre question — non pas « qu'est-ce qui est bien ? » mais
+            « qu'est-ce que je n'ai pas encore vu ? ». */}
+        {newest.products.length > 0 ? (
+          <section aria-labelledby="nouveautes" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 id="nouveautes" className="text-2xl font-bold text-ink-900 sm:text-3xl">
+                  Dernières arrivées
+                </h2>
+                <p className="mt-2 text-ink-600">
+                  Ce qui vient d’entrer au catalogue.
+                </p>
+              </div>
+
+              <Link
+                href="/nouveautes"
+                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
+              >
+                Toutes les nouveautés
+                <ArrowRight aria-hidden className="size-4" />
+              </Link>
+            </div>
+
+            <div className="mt-7 grid grid-cols-2 gap-5 md:grid-cols-4">
+              {newest.products.map((product) => (
+                <ProductCard key={product.id} product={product} isNew />
+              ))}
             </div>
           </section>
         ) : null}

@@ -31,6 +31,8 @@ export type ProductSummary = {
   ratingCount?: number;
   /** Nul dès qu'il faut choisir une déclinaison : pas d'ajout depuis la grille. */
   defaultVariantId?: string | null;
+  /** Reste en stock, quand il est assez bas pour peser dans la décision. */
+  stockLeft?: number;
 };
 
 /**
@@ -120,6 +122,12 @@ export function ProductCard({
               <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-medium text-white">
                 Épuisé
               </span>
+            ) : product.stockLeft !== undefined && product.stockLeft <= 5 ? (
+              /* Le dernier stock se dit sur la vignette, pas seulement sur la
+                 fiche : c'est là que le client arbitre entre deux produits. */
+              <span className="rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning">
+                Plus que {product.stockLeft}
+              </span>
             ) : null}
           </div>
 
@@ -143,7 +151,13 @@ export function ProductCard({
         <h3
           className={cn(
             'mt-1 font-medium text-ink-900',
-            feature ? 'font-display text-xl leading-tight' : 'font-sans text-[15px] leading-snug',
+            /* Deux lignes réservées même quand le titre en tient une :
+               sans cela, prix et boutons se décalent d'une carte à l'autre
+               et la rangée perd sa ligne de base. */
+            'line-clamp-2',
+            feature
+              ? 'font-display text-xl leading-tight'
+              : 'min-h-[2.75em] font-sans text-[15px] leading-snug',
           )}
         >
           <Link href={`/produits/${product.slug}`} className="after:absolute after:inset-0">
@@ -163,6 +177,9 @@ export function ProductCard({
 
         <div className="mt-auto pt-2.5">
           <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            {product.defaultVariantId === null ? (
+              <span className="text-sm text-ink-500">À partir de</span>
+            ) : null}
             <span
               data-price
               className={cn(
