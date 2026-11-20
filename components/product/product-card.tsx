@@ -68,14 +68,18 @@ export function ProductCard({
     product.compareAtCents !== null && product.compareAtCents > product.priceCents;
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-card border border-ink-200/80 bg-surface transition-colors duration-150 hover:border-walnut-300">
+    /* Pas de cadre ni d'ombre : la photo pose son propre rectangle sur le
+       papier, et le texte vit dessous sans boîte. Encadrer chaque produit
+       aligne des objets de même poids et empêche la grille de respirer —
+       c'est la signature du gabarit, pas une aide à la lecture. */
+    <article className="group relative flex flex-col">
       {/* Nommée pour que la vignette devienne la photo de la fiche plutôt
           que de disparaître. `share`/`default="none"` limitent l'animation à
           cette paire : sans eux, chaque image nommée se fondrait à chaque
           navigation, y compris celles qui ne mènent nulle part. */}
       <ViewTransition name={`produit-${product.slug}`} share="morph" default="none">
         <div className={cn(
-            'relative overflow-hidden bg-clay-50',
+            'relative overflow-hidden bg-clay-100',
             feature ? 'aspect-square lg:aspect-4/5' : 'ratio-product',
           )}>
           {product.imageUrl ? (
@@ -105,34 +109,37 @@ export function ProductCard({
             </div>
           )}
 
-          <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+          {/* Pastilles rectangulaires en chasse fixe : la gélule arrondie de
+              couleur vive est le réflexe du gabarit, et trois d'entre elles
+              empilées sur une photo tiennent plus de place que le produit. */}
+          <div className="absolute top-0 left-0 flex flex-col items-start">
             {hasDiscount ? (
-              <span className="rounded-full bg-saffron px-2.5 py-1 text-xs font-semibold text-white">
+              <span className="bg-saffron px-2 py-1 font-mono text-[11px] font-medium tracking-wider text-white">
                 {discountRate(product.priceCents, product.compareAtCents as number)}
               </span>
             ) : isNew ? (
               /* Posée par la page qui sait ce qu'elle liste, jamais devinée
                  ici : l'API ne donne pas de date de mise en ligne, et un
                  « Nouveau » décidé au hasard ne vaut rien. */
-              <span className="rounded-full bg-walnut-100 px-2.5 py-1 text-xs font-semibold text-walnut-700">
+              <span className="bg-ink-900 px-2 py-1 font-mono text-[11px] font-medium tracking-wider text-white uppercase">
                 Nouveau
               </span>
             ) : null}
             {!product.isAvailable ? (
-              <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-xs font-medium text-white">
+              <span className="bg-ink-900/85 px-2 py-1 font-mono text-[11px] font-medium tracking-wider text-white uppercase">
                 Épuisé
               </span>
             ) : product.stockLeft !== undefined && product.stockLeft <= 5 ? (
               /* Le dernier stock se dit sur la vignette, pas seulement sur la
                  fiche : c'est là que le client arbitre entre deux produits. */
-              <span className="rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning">
+              <span className="bg-warning px-2 py-1 font-mono text-[11px] font-medium tracking-wider text-white uppercase">
                 Plus que {product.stockLeft}
               </span>
             ) : null}
           </div>
 
           {/* Mise de côté, au-dessus du lien qui recouvre la carte. */}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-2 right-2">
             <WishlistButton
               productId={product.id}
               productSlug={product.slug}
@@ -143,21 +150,23 @@ export function ProductCard({
         </div>
       </ViewTransition>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col pt-3.5">
         {product.brand ? (
-          <p className="text-xs tracking-wide text-ink-500 uppercase">{product.brand}</p>
+          <p className="font-mono text-[11px] tracking-[0.14em] text-ink-500 uppercase">
+            {product.brand}
+          </p>
         ) : null}
 
         <h3
           className={cn(
-            'mt-1 font-medium text-ink-900',
+            'mt-1 font-display font-semibold text-ink-900',
             /* Deux lignes réservées même quand le titre en tient une :
                sans cela, prix et boutons se décalent d'une carte à l'autre
                et la rangée perd sa ligne de base. */
             'line-clamp-2',
             feature
-              ? 'font-display text-xl leading-tight'
-              : 'min-h-[2.75em] font-sans text-[15px] leading-snug',
+              ? 'text-2xl leading-tight'
+              : 'min-h-[2.4em] text-[17px] leading-[1.2]',
           )}
         >
           <Link href={`/produits/${product.slug}`} className="after:absolute after:inset-0">
@@ -175,15 +184,17 @@ export function ProductCard({
           </p>
         ) : null}
 
-        <div className="mt-auto pt-2.5">
+        <div className="mt-auto border-t border-ink-900/12 pt-2.5">
           <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
             {product.defaultVariantId === null ? (
-              <span className="text-sm text-ink-500">À partir de</span>
+              <span className="font-mono text-[11px] tracking-wide text-ink-500 uppercase">
+                Dès
+              </span>
             ) : null}
             <span
               data-price
               className={cn(
-                'text-lg font-semibold',
+                'font-display text-xl font-bold',
                 hasDiscount ? 'text-saffron' : 'text-ink-900',
               )}
             >

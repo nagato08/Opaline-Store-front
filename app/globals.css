@@ -3,45 +3,50 @@
 /*
  * Système de design — boutique.
  *
- * Le noyer remplace le cobalt comme couleur d'action. Une boutique qui vend
- * du meuble, de l'épicerie et du textile se présente mieux dans une gamme
- * chaude : le bleu franc du back-office tranchait sur des photos de bois, de
- * lin et de pain, là où le brun les accompagne. Le back-office, lui, garde le
- * cobalt — c'est un outil de travail, pas une vitrine.
+ * Parti pris éditorial, pas catalogue. Un site marchand ordinaire aligne des
+ * tuiles de taille égale dans une teinte douce et laisse l'œil glisser sans
+ * s'arrêter. Ici le titre est énorme, la photo occupe toute la largeur, et
+ * l'asymétrie décide de ce qu'on regarde en premier — la mise en page d'un
+ * magazine de décoration plutôt que d'une place de marché.
  *
- * Le régime diffère aussi : le back-office est dense parce qu'on y traite des
- * lignes ; la boutique respire parce qu'on y regarde des objets. La photo
- * porte la vente — meubles, électronique, épicerie se jugent à l'œil avant de
- * se juger au descriptif.
+ * Trois couleurs, pas une de plus. Un papier ivoire, une encre presque noire,
+ * un vert forêt pour les actions. La terre cuite ne sert qu'au prix réduit :
+ * lui donner un second emploi lui ferait perdre son sens.
+ *
+ * Le back-office garde le cobalt — c'est un outil de travail, pas une
+ * vitrine.
  */
 
 @theme {
-  /* --- Marque : le noyer -------------------------------------------------
-   * Une seule gamme porte l'enseigne, les actions et les fonds éditoriaux.
-   * Les tons clairs (50 à 200) servent de surfaces, le 500 de couleur
-   * d'action, le 900 de fond sombre pour le pied de page. */
-  --color-walnut-50: #faf4ef;
-  --color-walnut-100: #f4e8dd;
-  --color-walnut-200: #e7d1bc;
-  --color-walnut-300: #d4b091;
-  --color-walnut-400: #b5845d;
-  --color-walnut-500: #8b5e3c;
-  --color-walnut-600: #7a5234;
-  --color-walnut-700: #63422b;
-  --color-walnut-800: #43302a;
-  --color-walnut-900: #2c2421;
+  /* --- Marque : le vert forêt --------------------------------------------
+   * Les actions, les liens, les surfaces qui doivent trancher. Profond au
+   * point de supporter du texte blanc sans dégradé ni voile, ce qui évite
+   * les bandes à moitié transparentes dont personne ne sait la teinte. */
+  --color-walnut-50: #eef3ef;
+  --color-walnut-100: #dce7e0;
+  --color-walnut-200: #b9cfc2;
+  --color-walnut-300: #86ab97;
+  --color-walnut-400: #4d7f68;
+  --color-walnut-500: #1d4d3a;
+  --color-walnut-600: #163d2e;
+  --color-walnut-700: #113023;
+  --color-walnut-800: #0d241b;
+  --color-walnut-900: #0a1a14;
 
-  /* --- Neutres chauds ---------------------------------------------------- */
-  --color-ink-50: #f7f7f5;
-  --color-ink-100: #eeeeea;
-  --color-ink-200: #e0e0da;
-  --color-ink-300: #c5c5bc;
-  --color-ink-400: #9a9a90;
-  --color-ink-500: #74746b;
-  --color-ink-600: #5a5a52;
-  --color-ink-700: #454540;
-  --color-ink-800: #2a2a27;
-  --color-ink-900: #161614;
+  /* --- Neutres : l'encre sur le papier -----------------------------------
+   * Franchement contrastés. Les demi-gris d'un thème de tableau de bord
+   * rendent une page molle ; ici on passe du papier à l'encre, et les
+   * valeurs intermédiaires ne servent qu'aux filets et aux mentions. */
+  --color-ink-50: #f4f2ed;
+  --color-ink-100: #e9e6de;
+  --color-ink-200: #d8d3c7;
+  --color-ink-300: #b3ac9c;
+  --color-ink-400: #8a8373;
+  --color-ink-500: #6a6355;
+  --color-ink-600: #4d4740;
+  --color-ink-700: #35312c;
+  --color-ink-800: #211f1b;
+  --color-ink-900: #14130f;
 
   /* --- Statuts : mêmes teintes, même sens strict ------------------------- */
   --color-success: #0b7a44;
@@ -59,15 +64,15 @@
    * ne signale rien — il est là pour les moments de réclame (remise, compte à
    * rebours), et jamais pour un statut, sinon il entrerait en concurrence
    * avec l'orange d'alerte. */
-  --color-clay-50: #faf7f2;
-  --color-clay-100: #f2ece1;
-  --color-clay-200: #e6dcc9;
-  --color-clay-300: #d4c4a8;
-  --color-saffron: #c2410c;
-  --color-saffron-soft: #fdf0e6;
+  --color-clay-50: #f0ede5;
+  --color-clay-100: #e7e3d8;
+  --color-clay-200: #d9d3c4;
+  --color-clay-300: #c2b9a4;
+  --color-saffron: #b23c17;
+  --color-saffron-soft: #f7e7df;
 
-  --color-canvas: #fdfcfa;
-  --color-surface: #ffffff;
+  --color-canvas: #f4f2ed;
+  --color-surface: #fbfaf7;
 
   /* --- Typographie : mêmes familles que le back-office ------------------- */
   --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
@@ -77,8 +82,13 @@
   /* --- Rythme ------------------------------------------------------------
    * Rayons plus généreux qu'en back-office : une fiche produit n'est pas une
    * ligne de tableau, elle a le droit d'être un objet. */
-  --radius-card: 1rem;
-  --radius-control: 0.625rem;
+  /* Angles vifs. L'arrondi généreux est la signature du gabarit acheté, et
+   * il arrondit aussi le propos : un catalogue de meubles et de denrées se
+   * tient mieux dans des rectangles francs, comme une page imprimée. Les
+   * rares éléments ronds — pastille de compte, bouton de favori — le
+   * demandent explicitement et gardent leur forme. */
+  --radius-card: 0rem;
+  --radius-control: 0rem;
 
   --shadow-card: 0 1px 2px rgb(22 22 20 / 0.04), 0 1px 3px rgb(22 22 20 / 0.06);
   --shadow-lift: 0 12px 28px -12px rgb(22 22 20 / 0.22);
@@ -112,13 +122,22 @@
     flex: 1;
   }
 
+  /* Les titres portent la page. Chasse resserrée et interlettrage négatif :
+   * à cette taille, l'espacement par défaut fait flotter les mots. */
   h1,
   h2,
   h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.035em;
     text-wrap: balance;
-    line-height: 1.1;
+    line-height: 0.95;
+  }
+
+  /* Le curseur et la sélection appartiennent aussi au dessin : laissés par
+   * défaut, ils rappellent à chaque clic que la page a été assemblée. */
+  ::selection {
+    background: var(--color-walnut-500);
+    color: #fff;
   }
 
   /* Les prix s'alignent en chasse fixe : dans une grille, des montants qui
@@ -133,9 +152,6 @@
     border-radius: 4px;
   }
 
-  ::selection {
-    background: var(--color-walnut-200);
-  }
 }
 
 @layer utilities {

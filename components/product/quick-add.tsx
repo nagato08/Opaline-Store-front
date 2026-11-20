@@ -81,16 +81,20 @@ export function QuickAdd({
         type="submit"
         disabled={disabled}
         aria-label={`Ajouter ${productName} au panier`}
+        /* Contour plutôt qu'aplat : dans une grille de douze produits, douze
+           pavés verts pleins font une rangée de boutons où l'on cherchait des
+           articles. Le contour se remplit au survol — l'action reste évidente
+           sans concurrencer les photos. */
         className={cn(
-          'flex h-11 w-full items-center justify-center gap-2 rounded-control text-sm font-medium transition-colors duration-150',
+          'flex h-10 w-full items-center justify-center gap-2 border font-mono text-[11px] font-medium tracking-[0.14em] uppercase transition-colors duration-150',
           'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500',
           status === 'done'
-            ? 'bg-success-soft text-success'
+            ? 'border-success bg-success text-white'
             : status === 'error'
-              ? 'bg-danger-soft text-danger'
-              : 'bg-walnut-500 text-white hover:bg-walnut-600',
+              ? 'border-danger bg-danger text-white'
+              : 'border-ink-900 text-ink-900 hover:bg-ink-900 hover:text-white',
           disabled &&
-            'cursor-not-allowed bg-ink-100 text-ink-400 hover:bg-ink-100',
+            'cursor-not-allowed border-ink-200 text-ink-400 hover:bg-transparent hover:text-ink-400',
         )}
       >
         {status === 'pending' ? (
@@ -107,7 +111,7 @@ export function QuickAdd({
             ? 'Réessayer'
             : disabled
               ? 'Épuisé'
-              : 'Ajouter au panier'}
+              : 'Ajouter'}
       </button>
 
       {/* L'issue est annoncée : un changement de libellé sur le bouton ne

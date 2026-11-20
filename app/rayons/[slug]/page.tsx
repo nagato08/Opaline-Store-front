@@ -123,15 +123,20 @@ export default async function DepartmentPage({
       <Header categories={categories} cartCount={cart.lines.length} />
 
       <main>
-        {/* Bande beige, comme l'accroche : elle marque l'entrée dans un rayon
-            et sépare le titre de la grille, qui revient au fond clair. */}
-        <section className="bg-linear-to-br from-walnut-100 via-walnut-50 to-clay-100">
-          <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8">
-            <nav aria-label="Fil d’Ariane" className="text-sm text-ink-500">
-              <Link href="/" className="hover:text-ink-800 hover:underline">
+        {/* Titre de rayon sur le papier, pas sur un fond dégradé. Un aplat
+            teinté derrière le titre ne dit rien du rayon et affaiblit le
+            contraste : ici c'est la taille du mot qui marque l'entrée, et le
+            décompte en chasse fixe qui le date. */}
+        <section className="border-b border-ink-900/12">
+          <div className="mx-auto max-w-7xl px-4 pt-10 pb-8 lg:px-8">
+            <nav
+              aria-label="Fil d’Ariane"
+              className="font-mono text-[11px] tracking-[0.16em] text-ink-500 uppercase"
+            >
+              <Link href="/" className="hover:text-ink-900 hover:underline">
                 Accueil
               </Link>
-              <span aria-hidden className="mx-1.5">
+              <span aria-hidden className="mx-2">
                 /
               </span>
               <span className="text-ink-700" aria-current="page">
@@ -141,26 +146,31 @@ export default async function DepartmentPage({
               </span>
             </nav>
 
-            <h1 className="mt-3 text-3xl font-bold text-ink-900 sm:text-4xl">
-              {active ? active.name : department.name}
-            </h1>
-            <p className="mt-2 max-w-xl text-ink-600">
-              {total} article{total > 1 ? "s" : ""} dans ce rayon.
-            </p>
+            <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-8 gap-y-2">
+              <h1 className="text-[clamp(2.5rem,6vw,5rem)] font-bold text-ink-900">
+                {active ? active.name : department.name}
+              </h1>
+              <p
+                data-numeric
+                className="font-mono text-sm tracking-wide text-ink-500 uppercase"
+              >
+                {total} article{total > 1 ? "s" : ""}
+              </p>
+            </div>
 
             {/* Onglets de sous-rayon : l'état vit dans l'URL, donc partageable
               et réversible par le bouton « précédent », comme le reste du
               filtrage sur ce projet. */}
             {department.children.length > 1 ? (
               <div className="mt-6 -mx-4 overflow-x-auto px-4 pb-1">
-                <div className="flex min-w-max items-center gap-2">
+                <div className="flex min-w-max items-center gap-7">
                   <Link
                     href={`/rayons/${department.slug}`}
                     className={cn(
-                      "rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150",
+                      "border-b-2 pb-2 font-mono text-[11px] tracking-[0.16em] uppercase transition-colors duration-150",
                       !active
-                        ? "bg-walnut-500 text-white"
-                        : "bg-ink-100 text-ink-700 hover:bg-ink-200",
+                        ? "border-ink-900 text-ink-900"
+                        : "border-transparent text-ink-500 hover:text-ink-900",
                     )}
                   >
                     Tout <span className="opacity-70">({total})</span>
@@ -170,10 +180,10 @@ export default async function DepartmentPage({
                       key={sub.slug}
                       href={`/rayons/${department.slug}?rayon=${sub.slug}`}
                       className={cn(
-                        "rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-150",
+                        "border-b-2 pb-2 font-mono text-[11px] tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-150",
                         active?.slug === sub.slug
-                          ? "bg-walnut-500 text-white"
-                          : "bg-ink-100 text-ink-700 hover:bg-ink-200",
+                          ? "border-ink-900 text-ink-900"
+                          : "border-transparent text-ink-500 hover:text-ink-900",
                       )}
                     >
                       {sub.name}{" "}

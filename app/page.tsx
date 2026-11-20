@@ -1,29 +1,24 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  Leaf,
-  RotateCcw,
-  ShieldCheck,
-  Star,
-  Truck,
-} from 'lucide-react';
+import { ArrowRight, Leaf, RotateCcw, ShieldCheck, Star, Truck } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { ButtonLink } from '@/components/ui/button';
+import { SectionHead } from '@/components/ui/section-head';
 import { PopularProducts } from '@/components/catalog/popular-products';
 import { ProductCard } from '@/components/product/product-card';
 import { BrandMarquee } from '@/components/marketing/brand-marquee';
-import { TiltFrame } from '@/components/marketing/tilt-frame';
 import { getCategoryTree, listBrands, listCollections, listHomeReviews, listProducts } from '@/lib/data/catalog';
 import { listPosts } from '@/lib/data/content';
 import { getCart } from '@/lib/data/cart';
 import { discountRate, money, shortDate } from '@/lib/format';
 
 /**
- * Réassurance. Placée juste sous l'accroche parce que c'est là que se joue la
- * première hésitation : un visiteur qui ne connaît pas la boutique cherche à
- * savoir s'il peut lui confier son argent avant de regarder les produits.
+ * Réassurance, en bandeau défilant plutôt qu'en rangée de cartes à icônes.
+ *
+ * Quatre vignettes identiques sous l'accroche sont le réflexe du gabarit
+ * acheté : on les reconnaît, donc on ne les lit pas. Une bande sombre en
+ * chasse fixe dit la même chose en occupant le dixième de la hauteur.
  */
 const guarantees = [
   { icon: Truck, title: 'Livraison offerte', detail: 'Dès 60 € en France' },
@@ -96,9 +91,9 @@ export default async function HomePage() {
   const [hero, ...rest] = products;
   const primaryCategory = categories[0];
 
-  /* Les portes du catalogue : chaque rayon, puis ses sous-rayons jusqu'à six
-     vignettes. Un rayon seul en donnerait trois sur une boutique généraliste,
-     et la grille paraîtrait vide là où le catalogue ne l'est pas. */
+  /* Les portes du catalogue : chaque rayon, puis ses sous-rayons jusqu'à cinq
+     vignettes — la mosaïque en compte cinq, la première occupant quatre
+     cellules. */
   const departments = [
     ...categories.map((category) => ({
       href: `/rayons/${category.slug}`,
@@ -107,8 +102,8 @@ export default async function HomePage() {
       detail: category.children.map((child) => child.name).join(', ') || 'Voir le rayon',
     })),
     /* Un sous-rayon par rayon à chaque tour, plutôt que tous ceux du premier :
-       concaténés, les trois dernières vignettes venaient du même rayon et la
-       rangée du bas ne parlait plus que de mobilier. */
+       concaténés, les dernières vignettes venaient du même rayon et la rangée
+       du bas ne parlait plus que de mobilier. */
     ...Array.from({ length: Math.max(...categories.map((c) => c.children.length), 0) }).flatMap(
       (_, rank) =>
         categories.flatMap((category) => {
@@ -124,7 +119,7 @@ export default async function HomePage() {
           ];
         }),
     ),
-  ].slice(0, 6);
+  ].slice(0, 5);
 
   /* La plus forte remise réellement en cours : la bande d'offre annonce ce
      chiffre, et l'inventer en ferait une promesse invérifiable. */
@@ -136,175 +131,194 @@ export default async function HomePage() {
           b.compareAtCents! / b.priceCents - a.compareAtCents! / a.priceCents,
       )[0] ?? null;
 
+  /* Numérotation des chapitres, calculée au fil du rendu : les sections
+     disparaissent quand leur source est vide, et une suite codée en dur
+     sauterait des numéros sur un catalogue partiel. */
+  let chapter = 0;
+  const next = () => (chapter += 1);
+
   return (
     <>
       <Header categories={categories} cartCount={cart.lines.length} />
 
       <main>
         {/* --- Accroche -----------------------------------------------------
-            Bande beige pleine largeur : elle sépare l'entrée du site du reste
-            de la page, qui revient au fond clair. Le texte occupe la gauche,
-            la photo du produit mis en avant la droite — une accroche qui ne
-            montre rien de ce qu'elle vend est une affiche, pas une boutique. */}
-        <section className="bg-linear-to-br from-walnut-100 via-walnut-50 to-clay-100">
-          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8 lg:py-20">
-            <div>
-              <h1 className="text-4xl leading-[1.08] font-bold text-ink-900 sm:text-5xl lg:text-6xl">
-                Le nécessaire,
-                <br />
-                <span className="text-walnut-500">bien choisi.</span>
-              </h1>
-              <p className="mt-5 max-w-md text-lg text-ink-700">
+            Le produit occupe l'écran entier et le titre se pose dessus. Une
+            accroche coupée en deux — texte à gauche, vignette à droite —
+            donne deux demi-images et aucune impression ; une photo pleine
+            largeur en donne une seule, mais elle tient.
+
+            Le dégradé ne décore pas : il garantit le contraste du texte quelle
+            que soit la photo que le commerçant met en avant. */}
+        <section className="relative isolate flex min-h-[82svh] items-end overflow-hidden bg-ink-900">
+          {hero?.imageUrl ? (
+            <Image
+              src={hero.imageUrl}
+              alt={hero.imageAlt}
+              fill
+              sizes="100vw"
+              // Image de première vue : c'est elle qui décide de la vitesse
+              // perçue de la page.
+              priority
+              className="object-cover"
+            />
+          ) : null}
+
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-linear-to-t from-ink-900 via-ink-900/55 to-ink-900/10"
+          />
+
+          <div className="relative mx-auto w-full max-w-7xl px-4 pt-28 pb-12 lg:px-8 lg:pb-16">
+            <p className="font-mono text-xs tracking-[0.2em] text-white/55 uppercase">
+              Mobilier · Électronique · Épicerie
+            </p>
+
+            <h1 className="mt-6 max-w-4xl text-[clamp(2.75rem,8vw,6.5rem)] font-bold text-white">
+              Le nécessaire,
+              <br />
+              bien choisi.
+            </h1>
+
+            <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <p className="max-w-md text-lg text-white/75">
                 Du canapé au paquet de riz : une sélection courte, des marques
                 identifiées, et des prix qui tiennent sans promotion permanente.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 {primaryCategory ? (
-                  <ButtonLink href={`/rayons/${primaryCategory.slug}`} size="lg" className="px-7">
-                    Magasiner maintenant
+                  <ButtonLink href={`/rayons/${primaryCategory.slug}`} size="lg" className="px-8">
+                    Entrer dans la boutique
                   </ButtonLink>
                 ) : null}
-                <ButtonLink href="/nouveautes" variant="secondary" size="lg">
-                  Voir les nouveautés
-                </ButtonLink>
-              </div>
 
-              {/* Les trois promesses sous l'accroche, pas en bande séparée :
-                  elles répondent aux questions qu'on se pose avant de cliquer,
-                  et les reléguer plus bas revenait à les poser trop tard. */}
-              <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
-                {guarantees.slice(0, 3).map((item) => (
-                  <li key={item.title} className="flex items-center gap-2.5">
-                    <item.icon aria-hidden className="size-5 shrink-0 text-walnut-500" />
-                    <span className="text-sm leading-tight">
-                      <span className="block font-medium text-ink-900">{item.title}</span>
-                      <span className="block text-ink-600">{item.detail}</span>
+                {/* La vedette reste atteignable d'un clic : c'est elle qu'on
+                    regarde, autant pouvoir l'ouvrir. */}
+                {hero ? (
+                  <Link
+                    href={`/produits/${hero.slug}`}
+                    className="inline-flex h-12 items-center gap-3 border border-white/30 px-5 text-[15px] text-white transition-colors duration-150 hover:bg-white/10"
+                  >
+                    <span className="text-white/60">À l’affiche</span>
+                    <span className="font-medium">{hero.name}</span>
+                    <span data-price className="font-semibold">
+                      {money(hero.priceCents, hero.currencyCode)}
                     </span>
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- Bandeau d'engagements -----------------------------------------
+            Une ligne sombre, en chasse fixe, qui défile lentement. Elle tient
+            la promesse de réassurance sans voler une pleine section à la
+            vente, et elle sert de respiration entre la photo d'accroche et la
+            première grille. La liste est écrite deux fois : le raccord du
+            défilement se fait à la moitié de la piste. */}
+        <section aria-label="Nos engagements" className="overflow-hidden bg-ink-900 py-3.5">
+          <div className="marquee flex w-max gap-10 pl-10">
+            {[0, 1].map((copy) => (
+              <ul key={copy} className="flex shrink-0 gap-10" aria-hidden={copy === 1}>
+                {guarantees.map((item) => (
+                  <li
+                    key={item.title}
+                    className="flex items-center gap-2.5 font-mono text-xs tracking-[0.14em] whitespace-nowrap text-white/75 uppercase"
+                  >
+                    <item.icon aria-hidden className="size-3.5 text-walnut-300" />
+                    {item.title}
+                    <span aria-hidden className="text-white/25">
+                      ·
+                    </span>
+                    <span className="text-white/45">{item.detail}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-
-            {hero?.imageUrl ? (
-              <TiltFrame>
-                <Link
-                  href={`/produits/${hero.slug}`}
-                  className="relative block aspect-4/3 overflow-hidden rounded-card bg-surface shadow-lift"
-                >
-                  <Image
-                    src={hero.imageUrl}
-                    alt={hero.imageAlt}
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    // Image de première vue : chargée en priorité, c'est elle
-                    // qui détermine la vitesse perçue de la page.
-                    priority
-                    className="object-cover"
-                  />
-                  <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-ink-900/80 to-transparent p-5">
-                    <span className="block text-xs tracking-wide text-white/70 uppercase">
-                      {hero.brand ?? 'À la une'}
-                    </span>
-                    <span className="mt-0.5 block font-medium text-white">{hero.name}</span>
-                    <span data-price className="mt-1 block text-lg font-semibold text-white">
-                      {money(hero.priceCents, hero.currencyCode)}
-                    </span>
-                  </span>
-                </Link>
-              </TiltFrame>
-            ) : null}
+            ))}
           </div>
         </section>
 
         {/* --- Rayons -------------------------------------------------------
-            Toutes les portes du catalogue, sous-rayons compris : la page
-            d'accueil d'une boutique généraliste sert d'abord à trouver son
-            rayon, et en cacher la moitié oblige à passer par le menu. La
-            vignette porte la photo, le titre et ce qu'on y trouve. */}
-        {departments.length > 0 ? (
-          <section aria-labelledby="rayons" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <h2 id="rayons" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                Explorez par catégorie
-              </h2>
-              <Link
-                href="/recherche"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
-              >
-                Voir toutes les catégories
-                <ArrowRight aria-hidden className="size-4" />
-              </Link>
-            </div>
+            Mosaïque asymétrique : la première porte occupe quatre cellules,
+            les autres une seule. Une grille de six vignettes égales ne
+            hiérarchise rien et se lit comme un sommaire ; ici l'œil sait par
+            où entrer.
 
-            <div className="mt-7 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-6">
-              {departments.map((department) => (
+            Le nom se pose sur la photo plutôt qu'en dessous : la vignette
+            devient l'objet, pas la légende d'une carte. */}
+        {departments.length > 0 ? (
+          <section
+            aria-labelledby="rayons"
+            className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8"
+          >
+            <SectionHead
+              index={next()}
+              label="Le catalogue"
+              id="rayons"
+              title="Cinq portes d’entrée, un seul entrepôt."
+              href="/recherche"
+              linkLabel="Toutes les catégories"
+            />
+
+            <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:grid-rows-2">
+              {departments.map((department, rank) => (
                 <Link
                   key={department.href}
                   href={department.href}
-                  className="group flex flex-col rounded-card border border-ink-200/80 bg-surface p-3 transition-colors duration-150 hover:border-walnut-300"
+                  className={
+                    'group relative isolate flex items-end overflow-hidden bg-ink-900 ' +
+                    (rank === 0
+                      ? 'col-span-2 row-span-2 aspect-square lg:aspect-auto lg:min-h-[32rem]'
+                      : 'aspect-4/5 lg:aspect-auto lg:min-h-[15.5rem]')
+                  }
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-xl bg-clay-50">
-                    {department.imageUrl ? (
-                      <Image
-                        src={department.imageUrl}
-                        alt=""
-                        fill
-                        sizes="(min-width: 1024px) 16vw, (min-width: 768px) 30vw, 45vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
-                      />
-                    ) : null}
+                  {department.imageUrl ? (
+                    <Image
+                      src={department.imageUrl}
+                      alt=""
+                      fill
+                      sizes={
+                        rank === 0
+                          ? '(min-width: 1024px) 50vw, 100vw'
+                          : '(min-width: 1024px) 25vw, 50vw'
+                      }
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04]"
+                    />
+                  ) : null}
+
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 bg-linear-to-t from-ink-900/85 via-ink-900/20 to-transparent"
+                  />
+
+                  <div className="relative w-full p-4 sm:p-5">
+                    <p className="font-mono text-[11px] tracking-[0.18em] text-white/55">
+                      {String(rank + 1).padStart(2, '0')}
+                    </p>
+                    <p
+                      className={
+                        'mt-1 font-display font-semibold text-white ' +
+                        (rank === 0 ? 'text-3xl sm:text-4xl' : 'text-lg')
+                      }
+                    >
+                      {department.name}
+                    </p>
+                    <p className="mt-1 line-clamp-1 text-sm text-white/55">
+                      {department.detail}
+                    </p>
                   </div>
 
-                  <p className="mt-3 font-medium text-ink-900">{department.name}</p>
-                  <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-ink-500">
-                    {department.detail}
-                  </p>
-
-                  <ArrowRight
+                  {/* Le filet se remplit au survol : un soulignement qui
+                      s'étend dit « on va quelque part » sans déplacer la
+                      carte, donc sans faire danser la grille. */}
+                  <span
                     aria-hidden
-                    className="mt-3 size-4 self-end text-ink-400 transition-colors duration-150 group-hover:text-walnut-600"
+                    className="absolute inset-x-4 bottom-0 h-px origin-left scale-x-0 bg-white transition-transform duration-300 group-hover:scale-x-100 sm:inset-x-5"
                   />
                 </Link>
               ))}
-            </div>
-          </section>
-        ) : null}
-
-        {/* --- Offre en cours ------------------------------------------------
-            Une bande pleine largeur pour la remise du moment, prise sur les
-            promotions réelles : annoncer « jusqu'à -50 % » sans que le
-            catalogue le porte est la plus facile des promesses invérifiables. */}
-        {bestDiscount ? (
-          <section aria-labelledby="offre" className="reveal mt-16 bg-walnut-100">
-            <div className="mx-auto grid max-w-7xl items-center gap-8 lg:grid-cols-2 lg:gap-14">
-              <div className="relative order-last aspect-16/10 lg:order-first lg:aspect-auto lg:h-full lg:min-h-72">
-                {bestDiscount.imageUrl ? (
-                  <Image
-                    src={bestDiscount.imageUrl}
-                    alt={bestDiscount.imageAlt}
-                    fill
-                    sizes="(min-width: 1024px) 50vw, 100vw"
-                    className="object-cover"
-                  />
-                ) : null}
-              </div>
-
-              <div className="px-4 pb-12 lg:px-0 lg:py-14">
-                <h2 id="offre" className="text-3xl font-bold text-ink-900 sm:text-4xl">
-                  Jusqu’à {discountRate(bestDiscount.priceCents, bestDiscount.compareAtCents!)} sur
-                  une sélection de produits
-                </h2>
-                <p className="mt-4 max-w-md text-ink-700">
-                  Les remises en cours, avec leur date de fin. Le prix barré est celui que nous
-                  pratiquions — pas un prix de référence inventé pour l’occasion.
-                </p>
-                <div className="mt-7">
-                  <ButtonLink href="/promotions" size="lg">
-                    Découvrir la sélection
-                  </ButtonLink>
-                </div>
-              </div>
             </div>
           </section>
         ) : null}
@@ -314,63 +328,101 @@ export default async function HomePage() {
             une mesure, et l'afficher sans la mesurer serait un classement
             déguisé. Les onglets filtrent par rayon sans quitter la page. */}
         {rest.length > 0 ? (
-          <section aria-labelledby="populaires" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 id="populaires" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                  Les plus populaires
-                </h2>
-                <p className="mt-2 text-ink-600">
-                  {rest.length} article{rest.length > 1 ? 's' : ''} les mieux notés par nos clients.
-                </p>
+          <section
+            aria-labelledby="populaires"
+            className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8"
+          >
+            <SectionHead
+              index={next()}
+              label="Les mieux notés"
+              id="populaires"
+              title="Ce que les clients gardent."
+              lead={`${rest.length} articles classés par la note qu’ils ont réellement reçue — aucun ordre acheté, aucun produit remonté à la main.`}
+              href="/nouveautes"
+              linkLabel="Tout voir"
+            />
+
+            <div className="mt-10">
+              <PopularProducts products={rest} departments={departmentMembers} newIds={newIds} />
+            </div>
+          </section>
+        ) : null}
+
+        {/* --- Offre en cours ------------------------------------------------
+            Pleine largeur, fond encre, et la remise écrite en chiffres de la
+            taille du titre d'accroche. Le pourcentage est pris sur les
+            promotions réelles : annoncer « jusqu'à -50 % » sans que le
+            catalogue le porte est la plus facile des promesses invérifiables. */}
+        {bestDiscount ? (
+          <section aria-labelledby="offre" className="reveal mt-24 bg-ink-900">
+            <div className="mx-auto grid max-w-7xl items-stretch gap-0 lg:grid-cols-5">
+              <div className="relative order-last aspect-16/10 lg:order-first lg:col-span-2 lg:aspect-auto">
+                {bestDiscount.imageUrl ? (
+                  <Image
+                    src={bestDiscount.imageUrl}
+                    alt={bestDiscount.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 40vw, 100vw"
+                    loading="lazy"
+                    className="object-cover"
+                  />
+                ) : null}
               </div>
 
-              <Link
-                href="/nouveautes"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
-              >
-                Tout voir
-                <ArrowRight aria-hidden className="size-4" />
-              </Link>
-            </div>
+              <div className="px-4 py-14 lg:col-span-3 lg:px-14 lg:py-20">
+                <p className="font-mono text-xs tracking-[0.18em] text-white/50 uppercase">
+                  Remises en cours
+                </p>
 
-            <div className="mt-7">
-              <PopularProducts
-                products={rest}
-                departments={departmentMembers}
-                newIds={newIds}
-              />
+                <p
+                  data-numeric
+                  className="mt-5 font-display text-[clamp(4rem,12vw,9rem)] leading-[0.8] font-bold tracking-[-0.04em] text-white"
+                >
+                  {discountRate(bestDiscount.priceCents, bestDiscount.compareAtCents!)}
+                </p>
+
+                <h2 id="offre" className="mt-6 max-w-md text-2xl font-semibold text-white">
+                  sur une sélection de produits, jusqu’à épuisement.
+                </h2>
+
+                <p className="mt-4 max-w-md text-[17px] leading-relaxed text-white/60">
+                  Le prix barré est celui que nous pratiquions — pas un prix de référence
+                  inventé pour l’occasion.
+                </p>
+
+                <div className="mt-8">
+                  <ButtonLink
+                    href="/promotions"
+                    size="lg"
+                    className="bg-white text-ink-900 hover:bg-white/90 active:bg-white/80"
+                  >
+                    Découvrir la sélection
+                  </ButtonLink>
+                </div>
+              </div>
             </div>
           </section>
         ) : null}
 
         {/* --- Nouveautés -----------------------------------------------------
-            Les dernières entrées au catalogue, en rail : la référence du
-            métier les distingue des « mieux notés » parce qu'elles répondent
-            à une autre question — non pas « qu'est-ce qui est bien ? » mais
-            « qu'est-ce que je n'ai pas encore vu ? ». */}
+            Les dernières entrées au catalogue : elles répondent à une autre
+            question que les mieux notés — non pas « qu'est-ce qui est bien ? »
+            mais « qu'est-ce que je n'ai pas encore vu ? ». */}
         {newest.products.length > 0 ? (
-          <section aria-labelledby="nouveautes" className="reveal mx-auto mt-16 max-w-7xl px-4 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 id="nouveautes" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                  Dernières arrivées
-                </h2>
-                <p className="mt-2 text-ink-600">
-                  Ce qui vient d’entrer au catalogue.
-                </p>
-              </div>
+          <section
+            aria-labelledby="nouveautes"
+            className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8"
+          >
+            <SectionHead
+              index={next()}
+              label="Arrivages"
+              id="nouveautes"
+              title="Ce qui vient d’entrer."
+              href="/nouveautes"
+              linkLabel="Toutes les nouveautés"
+            />
 
-              <Link
-                href="/nouveautes"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
-              >
-                Toutes les nouveautés
-                <ArrowRight aria-hidden className="size-4" />
-              </Link>
-            </div>
-
-            <div className="mt-7 grid grid-cols-2 gap-5 md:grid-cols-4">
+            <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-4">
               {newest.products.map((product) => (
                 <ProductCard key={product.id} product={product} isNew />
               ))}
@@ -382,108 +434,118 @@ export default async function HomePage() {
             Une collection traverse les rayons pour répondre à une intention
             — meubler un salon, monter un coin café — là où le rayon range par
             nature de produit. C'est ce qui fait acheter trois articles plutôt
-            qu'un. */}
-        {collections.length > 0 ? (
-          <section aria-labelledby="selections" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-            <h2 id="selections" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-              Nos sélections
-            </h2>
-            <p className="mt-2 max-w-xl text-ink-600">
-              Des ensembles pensés pour aller ensemble, d’un rayon à l’autre.
-            </p>
+            qu'un.
 
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {collections.slice(0, 3).map((collection) => (
-                <Link
-                  key={collection.id}
-                  href={`/collections/${collection.slug}`}
-                  className="group flex flex-col justify-between rounded-card border border-ink-200 p-6 transition-colors duration-150 hover:border-ink-400"
-                >
-                  <div>
-                    <h3 className="font-display text-xl font-semibold text-ink-900">
+            Rendues en liste à filets plutôt qu'en cartes : une sélection est
+            un titre et un nombre, et l'encadrer n'y ajoute rien. */}
+        {collections.length > 0 ? (
+          <section
+            aria-labelledby="selections"
+            className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8"
+          >
+            <SectionHead
+              index={next()}
+              label="Sélections"
+              id="selections"
+              title="Des ensembles qui tiennent debout."
+              lead="Pensés pour aller ensemble, d’un rayon à l’autre."
+            />
+
+            <ul className="mt-10 border-t border-ink-900/15">
+              {collections.slice(0, 4).map((collection) => (
+                <li key={collection.id} className="border-b border-ink-900/15">
+                  <Link
+                    href={`/collections/${collection.slug}`}
+                    className="group flex flex-wrap items-baseline gap-x-8 gap-y-2 py-6 transition-colors duration-150 hover:bg-ink-900/[0.03] sm:py-8"
+                  >
+                    <h3 className="flex-1 font-display text-2xl font-semibold text-ink-900 sm:text-3xl">
                       {collection.name}
                     </h3>
-                    {collection.description ? (
-                      <p className="mt-2 text-[15px] text-ink-600">{collection.description}</p>
-                    ) : null}
-                  </div>
 
-                  <p className="mt-6 flex items-center gap-1.5 text-[15px] font-medium text-walnut-600">
-                    {collection.productCount} article{collection.productCount > 1 ? 's' : ''}
-                    <ArrowRight
-                      aria-hidden
-                      className="size-4 transition-transform duration-150 group-hover:translate-x-0.5"
-                    />
-                  </p>
-                </Link>
+                    {collection.description ? (
+                      <p className="max-w-sm flex-1 text-[15px] text-ink-600">
+                        {collection.description}
+                      </p>
+                    ) : null}
+
+                    <p className="flex items-center gap-3 font-mono text-sm text-ink-500">
+                      {collection.productCount} art.
+                      <ArrowRight
+                        aria-hidden
+                        className="size-4 text-ink-900 transition-transform duration-150 group-hover:translate-x-1"
+                      />
+                    </p>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         ) : null}
 
         <BrandMarquee brands={brands} />
 
         {/* --- Pourquoi cette boutique ---------------------------------------
-            Bande sombre au milieu du parcours. Toute la page est claire, et
-            une succession de blocs crème finit par se lire comme un seul bloc :
-            cette rupture redonne un repère et marque la fin de la partie
-            catalogue.
+            Bande vert profond au milieu du parcours. Toute la page est claire,
+            et une succession de blocs crème finit par se lire comme un seul
+            bloc : cette rupture redonne un repère.
 
             Trois faits chiffrés, pas des adjectifs. Le nombre porte la plus
             grande taille de la page après le titre — c'est lui qu'on retient,
             et c'est ce qui différencie un propriétaire unique d'une place de
             marché. */}
-        <section aria-labelledby="pourquoi" className="reveal mt-16 bg-walnut-900">
-          <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-20">
-            <h2 id="pourquoi" className="max-w-xl text-2xl font-bold text-white sm:text-3xl">
-              Pourquoi ici plutôt qu’ailleurs
-            </h2>
+        <section aria-labelledby="pourquoi" className="reveal mt-24 bg-walnut-900">
+          <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8 lg:py-24">
+            <SectionHead
+              index={next()}
+              label="La maison"
+              id="pourquoi"
+              title="Pourquoi ici plutôt qu’ailleurs."
+              tone="dark"
+            />
 
-            <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-6">
+            <dl className="mt-12 grid gap-12 sm:grid-cols-3 sm:gap-8">
               {reasons.map((reason) => (
-                <div key={reason.title}>
-                  <p
+                <div key={reason.title} className="border-t border-white/20 pt-6">
+                  <dt
                     data-numeric
-                    className="font-display text-5xl font-bold text-white lg:text-6xl"
+                    className="font-display text-[clamp(2.5rem,5vw,3.75rem)] leading-[0.9] font-bold text-white"
                   >
                     {reason.figure}
-                  </p>
-                  <p className="mt-3 font-display text-lg font-semibold text-white">
-                    {reason.title}
-                  </p>
-                  <p className="mt-1.5 max-w-xs text-[15px] leading-relaxed text-white/60">
-                    {reason.detail}
-                  </p>
+                  </dt>
+                  <dd>
+                    <p className="mt-4 font-display text-lg font-semibold text-white">
+                      {reason.title}
+                    </p>
+                    <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-white/60">
+                      {reason.detail}
+                    </p>
+                  </dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
         </section>
 
         {/* --- Épicerie ------------------------------------------------------
-            Une bande éditoriale sur fond argile : elle casse la répétition des
-            grilles et met en avant le rayon qui fait revenir le client. Le
-            rayon épicerie n'existe pas encore forcément dans le catalogue —
-            la bande ne s'affiche que si sa catégorie est réellement là. */}
+            Une bande éditoriale : elle casse la répétition des grilles et met
+            en avant le rayon qui fait revenir le client. Le rayon épicerie
+            n'existe pas forcément dans le catalogue — la bande ne s'affiche
+            que si sa catégorie est réellement là. */}
         {(() => {
           const grocery = categories.find((category) => category.slug === 'epicerie');
           if (!grocery) return null;
 
           return (
-            <section className="reveal mt-20 bg-clay-100">
-              <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-14 lg:grid-cols-2 lg:gap-14 lg:px-8">
+            <section className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8">
+              <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
                 <div>
-                  <p className="text-sm font-medium tracking-wide text-ink-600 uppercase">
-                    {grocery.name}
-                  </p>
-                  <h2 className="mt-3 text-3xl font-bold text-ink-900">
-                    Les courses aussi, livrées avec le reste.
-                  </h2>
-                  <p className="mt-4 max-w-md text-ink-700">
-                    Produits secs, conserves et boissons, vendus au poids quand c’est
-                    pertinent. Dates limites affichées avant l’achat, jamais après.
-                  </p>
-                  <div className="mt-7">
+                  <SectionHead
+                    index={next()}
+                    label={grocery.name}
+                    title="Les courses aussi, livrées avec le reste."
+                    lead="Produits secs, conserves et boissons, vendus au poids quand c’est pertinent. Dates limites affichées avant l’achat, jamais après."
+                  />
+                  <div className="mt-8">
                     <ButtonLink href={`/rayons/${grocery.slug}`} size="lg">
                       Parcourir {grocery.name.toLowerCase()}
                     </ButtonLink>
@@ -491,7 +553,7 @@ export default async function HomePage() {
                 </div>
 
                 {grocery.imageUrl ? (
-                  <div className="ratio-wide relative overflow-hidden rounded-card">
+                  <div className="relative aspect-4/3 overflow-hidden">
                     <Image
                       src={grocery.imageUrl}
                       alt=""
@@ -511,44 +573,47 @@ export default async function HomePage() {
             Les avis affichés ici sont **réels** : ils viennent de la
             modération, et la section disparaît tant qu'aucun client n'a écrit.
             Des témoignages inventés seraient une pratique commerciale
-            trompeuse, et c'est exactement ce qui se trouvait ici. */}
-        {homeReviews.length > 0 ? (
-          <section aria-labelledby="avis" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-            <h2 id="avis" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-              Ce qu’en disent nos clients
-            </h2>
+            trompeuse.
 
-            <div className="mt-8 grid gap-5 sm:grid-cols-3">
+            Pas de carte, pas d'ombre : une citation au grand corps, séparée
+            par un filet. Un avis se lit, il ne se clique pas. */}
+        {homeReviews.length > 0 ? (
+          <section aria-labelledby="avis" className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8">
+            <SectionHead
+              index={next()}
+              label="Avis vérifiés"
+              id="avis"
+              title="Ce qu’en disent les clients."
+            />
+
+            <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
               {homeReviews.map((review) => (
-                <figure
-                  key={review.id}
-                  className="flex flex-col rounded-card bg-surface p-6 shadow-card"
-                >
+                <figure key={review.id} className="flex flex-col border-t border-ink-900/15 pt-6">
                   <div aria-hidden className="flex gap-0.5 text-saffron">
                     {Array.from({ length: 5 }, (_, index) => (
                       <Star
                         key={index}
                         className={
                           index < review.rating
-                            ? 'size-4 fill-current'
-                            : 'size-4 fill-current text-ink-200'
+                            ? 'size-3.5 fill-current'
+                            : 'size-3.5 fill-current text-ink-200'
                         }
                       />
                     ))}
                   </div>
                   <span className="sr-only">Note de {review.rating} sur 5</span>
 
-                  <blockquote className="mt-3 flex-1 text-[15px] text-ink-700">
-                    “{review.body}”
+                  <blockquote className="mt-4 flex-1 font-display text-xl leading-snug font-medium text-ink-900">
+                    « {review.body} »
                   </blockquote>
 
-                  <figcaption className="mt-4 text-sm font-medium text-ink-900">
+                  <figcaption className="mt-5 font-mono text-xs tracking-wide text-ink-500 uppercase">
                     {review.author}
                     {/* La mention n'apparaît que si l'achat est réellement
                         rattaché à une commande : l'afficher partout serait la
                         même tromperie sous une autre forme. */}
                     {review.isVerifiedPurchase ? (
-                      <span className="font-normal text-success"> · achat vérifié</span>
+                      <span className="text-success"> · achat vérifié</span>
                     ) : null}
                   </figcaption>
                 </figure>
@@ -562,69 +627,47 @@ export default async function HomePage() {
             en chêne ou mesurer une cage d'escalier évite un retour, ce qui
             sert le client autant que la boutique. */}
         {posts.length > 0 ? (
-          <section aria-labelledby="journal" className="reveal mx-auto mt-20 max-w-7xl px-4 lg:px-8">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 id="journal" className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                  Du journal
-                </h2>
-                <p className="mt-2 text-ink-600">
-                  Ce qu’il faut savoir avant d’acheter, et après.
-                </p>
-              </div>
+          <section
+            aria-labelledby="journal"
+            className="reveal mx-auto mt-24 max-w-7xl px-4 lg:px-8"
+          >
+            <SectionHead
+              index={next()}
+              label="Le journal"
+              id="journal"
+              title="À savoir avant d’acheter, et après."
+              href="/blog"
+              linkLabel="Tous les articles"
+            />
 
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-1.5 text-[15px] font-medium text-walnut-600 transition-colors duration-150 hover:text-walnut-700"
-              >
-                Tous les articles
-                <ArrowRight aria-hidden className="size-4" />
-              </Link>
-            </div>
-
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid gap-8 sm:grid-cols-3">
               {posts.slice(0, 3).map((post) => (
-                <article key={post.id} className="group flex flex-col">
-                  <h3 className="font-display text-lg font-semibold text-ink-900">
-                    <Link href={`/blog/${post.slug}`} className="hover:underline">
-                      {post.title}
-                    </Link>
-                  </h3>
-                  {post.excerpt ? (
-                    <p className="mt-2 text-[15px] leading-relaxed text-ink-600">{post.excerpt}</p>
-                  ) : null}
-                  <time
-                    dateTime={post.publishedAt}
-                    className="mt-3 text-sm text-ink-500"
-                  >
-                    {shortDate(post.publishedAt)}
-                  </time>
-                </article>
+                <li key={post.id} className="border-t border-ink-900/15 pt-6">
+                  <article>
+                    <time
+                      dateTime={post.publishedAt}
+                      className="font-mono text-xs tracking-wide text-ink-500 uppercase"
+                    >
+                      {shortDate(post.publishedAt)}
+                    </time>
+
+                    <h3 className="mt-3 font-display text-xl leading-tight font-semibold text-ink-900">
+                      <Link href={`/blog/${post.slug}`} className="hover:underline">
+                        {post.title}
+                      </Link>
+                    </h3>
+
+                    {post.excerpt ? (
+                      <p className="mt-3 text-[15px] leading-relaxed text-ink-600">
+                        {post.excerpt}
+                      </p>
+                    ) : null}
+                  </article>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         ) : null}
-
-        {/* --- Garanties -----------------------------------------------------
-            Les quatre engagements, juste avant le pied de page : c'est le
-            dernier doute à lever pour qui a parcouru la page sans acheter.
-            La lettre d'information, elle, vit désormais dans le pied de page,
-            où elle est atteignable depuis n'importe quel écran. */}
-        <section aria-label="Nos engagements" className="reveal mt-16 border-y border-ink-200/70 bg-walnut-50/60">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-            {guarantees.map((item) => (
-              <div key={item.title} className="flex items-center gap-4">
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-surface">
-                  <item.icon aria-hidden className="size-5 text-walnut-600" />
-                </span>
-                <span>
-                  <span className="block font-medium text-ink-900">{item.title}</span>
-                  <span className="block text-sm text-ink-600">{item.detail}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
 
       <Footer />

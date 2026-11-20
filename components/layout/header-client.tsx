@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,16 +84,20 @@ export function HeaderClient({
           depuis le back-office, avec ses dates et son ciblage. Il vit dans la
           mise en page racine — voir `components/marketing/campaigns.tsx`. */}
 
-      <header className="sticky top-0 z-40 bg-surface">
+      <header className="sticky top-0 z-40 bg-canvas/95 backdrop-blur-sm">
         {/* Rangée haute : l'enseigne, la recherche, le compte.
+            L'enseigne est écrite, pas mise dans une pastille : un carré
+            coloré à coin arrondi avec un pictogramme dedans est le logo par
+            défaut de tous les gabarits, et il ne dit rien du commerce.
+
             La recherche occupe le centre parce que c'est le geste le plus
             fréquent d'un catalogue qu'on ne connaît pas par cœur ; reléguée
             derrière une loupe, elle demandait un clic pour exister. */}
-        <div className="mx-auto flex h-20 max-w-7xl items-center gap-4 px-4 lg:px-8">
+        <div className="mx-auto flex h-18 max-w-7xl items-center gap-2 px-4 sm:gap-4 lg:gap-5 lg:px-8">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="-ml-2 lg:hidden"
             aria-label="Ouvrir le menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
@@ -102,34 +105,31 @@ export function HeaderClient({
             <Menu aria-hidden className="size-5" />
           </Button>
 
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <span
-              aria-hidden
-              className="grid size-10 place-items-center rounded-xl bg-walnut-500 text-white"
-            >
-              <ShoppingBag className="size-5" />
-            </span>
-            <span className="leading-tight">
-              <span className="block font-display text-xl font-bold tracking-tight text-ink-900">
-                {storeName}
-              </span>
-              <span className="hidden text-xs text-ink-500 sm:block">
-                Tout ce dont vous avez besoin
-              </span>
+          <Link
+            href="/"
+            className="shrink-0 font-display text-xl leading-none font-bold tracking-[-0.045em] text-ink-900 sm:text-[1.6rem]"
+          >
+            {storeName}
+            <span aria-hidden className="text-walnut-500">
+              .
             </span>
           </Link>
 
           {/* `action` en GET : la recherche reste une URL partageable, et le
-              formulaire fonctionne avant même que React soit hydraté. */}
+              formulaire fonctionne avant même que React soit hydraté.
+
+              Un filet sous le champ au lieu d'une gélule encadrée : le champ
+              se lit comme une ligne d'écriture, pas comme un bouton. */}
           <form
             action="/recherche"
             role="search"
-            className="mx-auto hidden w-full max-w-xl md:block"
+            className="mx-auto hidden w-full max-w-md md:block"
           >
             <label htmlFor="recherche-entete" className="sr-only">
               Rechercher un produit
             </label>
-            <div className="flex h-12 items-center gap-2 rounded-full border border-ink-200 bg-surface pr-1.5 pl-5 transition-colors duration-150 focus-within:border-walnut-400">
+            <div className="flex h-10 items-center gap-2 border-b border-ink-300 transition-colors duration-150 focus-within:border-ink-900">
+              <Search aria-hidden className="size-4 shrink-0 text-ink-400" />
               <input
                 id="recherche-entete"
                 name="q"
@@ -140,29 +140,28 @@ export function HeaderClient({
               />
               <button
                 type="submit"
-                aria-label="Lancer la recherche"
-                className="grid size-9 shrink-0 place-items-center rounded-full bg-walnut-500 text-white transition-colors duration-150 hover:bg-walnut-600"
+                className="shrink-0 font-mono text-[11px] tracking-[0.16em] text-ink-500 uppercase transition-colors duration-150 hover:text-ink-900"
               >
-                <Search aria-hidden className="size-4" />
+                Chercher
               </button>
             </div>
           </form>
 
-          <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-2">
+          <div className="ml-auto flex items-center gap-1 md:ml-0 md:gap-1.5">
             <Link
               href="/recherche"
               aria-label="Rechercher"
-              className="grid size-11 place-items-center rounded-control text-ink-700 transition-colors duration-150 hover:bg-ink-100 md:hidden"
+              className="grid size-10 place-items-center text-ink-700 transition-colors duration-150 hover:text-ink-900 md:hidden"
             >
               <Search aria-hidden className="size-5" />
             </Link>
 
             <HeaderAction href="/compte/connexion" label="Compte">
-              <User aria-hidden className="size-5" />
+              <User aria-hidden className="size-[18px]" />
             </HeaderAction>
 
             <HeaderAction href="/favoris" label="Favoris" className="hidden sm:flex">
-              <Heart aria-hidden className="size-5" />
+              <Heart aria-hidden className="size-[18px]" />
             </HeaderAction>
 
             {/* Région vivante : un `aria-label` ne se réannonce pas quand il
@@ -181,12 +180,12 @@ export function HeaderClient({
               // « Panier, 2 articles », pas « Panier » puis un chiffre orphelin.
               describedAs={`Panier, ${cartCount} article${cartCount > 1 ? 's' : ''}`}
             >
-              <ShoppingBag aria-hidden className="size-5" />
+              <ShoppingBag aria-hidden className="size-[18px]" />
               <span
                 aria-hidden
                 className={cn(
-                  'absolute -top-1 -right-1 grid min-w-5 place-items-center rounded-full px-1 font-mono text-[11px] leading-5 font-medium',
-                  cartCount > 0 ? 'bg-walnut-500 text-white' : 'bg-ink-200 text-ink-600',
+                  'absolute -top-1.5 -right-2.5 min-w-4 px-1 text-center font-mono text-[10px] leading-4 font-medium',
+                  cartCount > 0 ? 'bg-walnut-500 text-white' : 'text-ink-400',
                 )}
               >
                 {cartCount}
@@ -198,29 +197,22 @@ export function HeaderClient({
         {/* Rangée basse : les rayons.
             Séparée de l'enseigne parce qu'elle change de rôle — la première
             rangée sert à s'orienter dans le site, celle-ci à entrer dans le
-            catalogue. Le fond l'en distingue sans trait de séparation. */}
-        <div className="border-y border-ink-200/70 bg-walnut-50/60">
-          <div className="mx-auto flex h-12 max-w-7xl items-center gap-2 px-4 lg:px-8">
+            catalogue. Les capitales en chasse fixe la distinguent sans y
+            poser un second fond : un bandeau teinté sous l'en-tête empile
+            deux barres et mange le haut de la page. */}
+        <div className="border-y border-ink-900/12">
+          <div className="mx-auto flex h-11 max-w-7xl items-center gap-5 px-4 lg:px-8">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="flex shrink-0 items-center gap-2 rounded-control py-1.5 pr-3 text-sm font-medium text-ink-800 transition-colors duration-150 hover:text-walnut-600 lg:pl-1"
+              className="flex shrink-0 items-center gap-2 font-mono text-[11px] tracking-[0.16em] text-ink-700 uppercase transition-colors duration-150 hover:text-ink-900"
             >
-              <Menu aria-hidden className="size-4" />
-              Toutes les catégories
+              <Menu aria-hidden className="size-3.5" />
+              Catégories
             </button>
 
             <nav ref={navRef} aria-label="Rayons" className="hidden min-w-0 lg:block">
-              <ul className="flex items-center">
-                <li>
-                  <Link
-                    href="/"
-                    className="rounded-control px-3 py-2 text-sm font-medium text-walnut-600"
-                  >
-                    Accueil
-                  </Link>
-                </li>
-
+              <ul className="flex items-center gap-6">
                 {categories.map((department) => {
                   const expanded = openDept === department.slug;
 
@@ -235,14 +227,14 @@ export function HeaderClient({
                         href={`/rayons/${department.slug}`}
                         aria-expanded={expanded}
                         onFocus={() => open(department.slug)}
-                        className="flex items-center gap-1 rounded-control px-3 py-2 text-sm whitespace-nowrap text-ink-700 transition-colors duration-150 hover:text-walnut-600"
+                        className="flex h-11 items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] whitespace-nowrap text-ink-700 uppercase transition-colors duration-150 hover:text-ink-900"
                       >
                         {department.name}
                         {department.children.length > 0 ? (
                           <ChevronDown
                             aria-hidden
                             className={cn(
-                              'size-3.5 text-ink-400 transition-transform duration-150',
+                              'size-3 text-ink-400 transition-transform duration-150',
                               expanded && 'rotate-180',
                             )}
                           />
@@ -250,13 +242,13 @@ export function HeaderClient({
                       </Link>
 
                       {expanded && department.children.length > 0 ? (
-                        <div className="absolute top-full left-0 z-10 w-60 rounded-card border border-ink-200 bg-surface p-2 shadow-lift">
+                        <div className="absolute top-full left-0 z-10 w-60 border border-ink-900/12 bg-surface p-1.5 shadow-lift">
                           <ul>
                             {department.children.map((subcategory) => (
                               <li key={subcategory.slug}>
                                 <Link
                                   href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
-                                  className="block rounded-control px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-walnut-50 hover:text-ink-900"
+                                  className="block px-3 py-2 text-sm text-ink-700 transition-colors duration-150 hover:bg-walnut-50 hover:text-ink-900"
                                 >
                                   {subcategory.name}
                                 </Link>
@@ -274,8 +266,8 @@ export function HeaderClient({
                     <Link
                       href={item.href}
                       className={cn(
-                        'rounded-control px-3 py-2 text-sm whitespace-nowrap transition-colors duration-150 hover:text-walnut-600',
-                        item.accent ? 'font-medium text-ink-900' : 'text-ink-700',
+                        'font-mono text-[11px] tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-150 hover:text-ink-900',
+                        item.accent ? 'text-walnut-600' : 'text-ink-700',
                       )}
                     >
                       {item.label}
@@ -286,13 +278,17 @@ export function HeaderClient({
                 <li>
                   <Link
                     href="/contact"
-                    className="rounded-control px-3 py-2 text-sm whitespace-nowrap text-ink-700 transition-colors duration-150 hover:text-walnut-600"
+                    className="font-mono text-[11px] tracking-[0.16em] whitespace-nowrap text-ink-700 uppercase transition-colors duration-150 hover:text-ink-900"
                   >
                     Contact
                   </Link>
                 </li>
               </ul>
             </nav>
+
+            <p className="ml-auto hidden font-mono text-[11px] tracking-[0.16em] text-ink-500 uppercase lg:block">
+              Livraison offerte dès 60 €
+            </p>
           </div>
         </div>
       </header>
@@ -308,7 +304,9 @@ export function HeaderClient({
       >
         <div className="animate-rise h-full overflow-y-auto overscroll-contain bg-surface p-5">
           <div className="flex items-center justify-between">
-            <span className="font-display text-lg font-bold">Rayons</span>
+            <span className="font-mono text-[11px] tracking-[0.18em] text-ink-500 uppercase">
+              Rayons
+            </span>
             <Button
               variant="ghost"
               size="icon"
@@ -319,27 +317,27 @@ export function HeaderClient({
             </Button>
           </div>
 
-          <ul className="mt-4 space-y-1">
+          <ul className="mt-4 border-t border-ink-900/12">
             {categories.map((department) => (
-              <li key={department.slug}>
+              <li key={department.slug} className="border-b border-ink-900/12">
                 {/* `<details>` natif : disclosure accessible sans JavaScript
                     supplémentaire, avec son propre état clavier déjà géré par
                     le navigateur. */}
                 <details className="group">
-                  <summary className="flex cursor-pointer list-none items-center justify-between rounded-control px-3 py-3 text-base text-ink-800 transition-colors duration-150 hover:bg-ink-100 [&::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer list-none items-center justify-between py-3.5 font-display text-lg font-semibold text-ink-900 [&::-webkit-details-marker]:hidden">
                     {department.name}
                     <ChevronDown
                       aria-hidden
                       className="size-4 text-ink-400 transition-transform duration-150 group-open:rotate-180"
                     />
                   </summary>
-                  <ul className="mt-0.5 mb-1.5 ml-3 space-y-0.5 border-l border-ink-200 pl-3">
+                  <ul className="mb-3 ml-1 space-y-0.5 border-l border-ink-200 pl-4">
                     {department.children.map((subcategory) => (
                       <li key={subcategory.slug}>
                         <Link
                           href={`/rayons/${department.slug}?rayon=${subcategory.slug}`}
                           onClick={() => setMenuOpen(false)}
-                          className="block rounded-control px-3 py-2.5 text-sm text-ink-600 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900"
+                          className="block py-2.5 text-sm text-ink-600 transition-colors duration-150 hover:text-ink-900"
                         >
                           {subcategory.name}
                         </Link>
@@ -349,7 +347,7 @@ export function HeaderClient({
                       <Link
                         href={`/rayons/${department.slug}`}
                         onClick={() => setMenuOpen(false)}
-                        className="block rounded-control px-3 py-2.5 text-sm font-medium text-walnut-600"
+                        className="block py-2.5 text-sm font-medium text-walnut-600"
                       >
                         Tout le rayon
                       </Link>
@@ -360,15 +358,13 @@ export function HeaderClient({
             ))}
 
             {plainLinks.map((item) => (
-              <li key={item.href}>
+              <li key={item.href} className="border-b border-ink-900/12">
                 <Link
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
                   className={cn(
-                    'block rounded-control px-3 py-3 text-base transition-colors duration-150',
-                    item.accent
-                      ? 'font-medium text-ink-900 hover:bg-ink-100'
-                      : 'text-ink-800 hover:bg-ink-100',
+                    'block py-3.5 font-display text-lg font-semibold transition-colors duration-150',
+                    item.accent ? 'text-walnut-600' : 'text-ink-900',
                   )}
                 >
                   {item.label}
@@ -408,12 +404,15 @@ function HeaderAction({
       href={href}
       aria-label={describedAs}
       className={cn(
-        'flex flex-col items-center gap-0.5 rounded-control px-2.5 py-1.5 text-ink-700 transition-colors duration-150 hover:text-walnut-600',
+        'flex flex-col items-center gap-1 px-1.5 py-1.5 text-ink-700 transition-colors duration-150 hover:text-ink-900 sm:px-2.5',
         className,
       )}
     >
       <span className="relative grid place-items-center">{children}</span>
-      <span aria-hidden className="text-[11px] leading-none font-medium">
+      <span
+        aria-hidden
+        className="font-mono text-[10px] leading-none tracking-[0.1em] uppercase"
+      >
         {label}
       </span>
     </Link>

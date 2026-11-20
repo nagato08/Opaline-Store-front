@@ -323,7 +323,7 @@ function Popup({
         ) : null}
 
         {campaign.promotionCode ? (
-          <p className="mt-4 rounded-xl bg-clay-50 px-4 py-3 text-center">
+          <p className="mt-4 bg-clay-50 px-4 py-3 text-center">
             <span className="font-mono text-lg font-semibold text-ink-900">
               {campaign.promotionCode}
             </span>
@@ -338,7 +338,7 @@ function Popup({
                 trackCampaign(campaign.id, 'CLICK');
                 onClose();
               }}
-              className="inline-flex h-11 items-center rounded-xl bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
+              className="inline-flex h-11 items-center bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
             >
               {campaign.ctaLabel ?? 'Découvrir'}
             </Link>
@@ -346,7 +346,7 @@ function Popup({
           <button
             type="button"
             onClick={close}
-            className="inline-flex h-11 items-center rounded-xl px-5 font-medium text-ink-700 hover:bg-ink-50"
+            className="inline-flex h-11 items-center px-5 font-medium text-ink-700 hover:bg-ink-50"
           >
             Plus tard
           </button>

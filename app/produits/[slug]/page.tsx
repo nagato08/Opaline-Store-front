@@ -58,19 +58,19 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
 
       <main>
         <section className="mx-auto max-w-7xl px-4 pt-8 lg:px-8">
-          <nav aria-label="Fil d’Ariane" className="text-sm text-ink-500">
+          <nav aria-label="Fil d’Ariane" className="font-mono text-[11px] tracking-[0.16em] text-ink-500 uppercase">
             <Link href="/" className="hover:text-ink-800 hover:underline">
               Accueil
             </Link>
             {primaryCategory ? (
               <>
-                <span aria-hidden className="mx-1.5">/</span>
+                <span aria-hidden className="mx-2">/</span>
                 <Link href={`/rayons/${primaryCategory.slug}`} className="hover:text-ink-800 hover:underline">
                   {primaryCategory.name}
                 </Link>
               </>
             ) : null}
-            <span aria-hidden className="mx-1.5">/</span>
+            <span aria-hidden className="mx-2">/</span>
             <span className="text-ink-700" aria-current="page">{product.name}</span>
           </nav>
         </section>
@@ -123,13 +123,13 @@ export default async function ProductPage({ params }: PageProps<'/produits/[slug
                    API sans que rien ne l'utilise. */
                 <Link
                   href={`/recherche?marque=${encodeURIComponent(product.brand.id)}`}
-                  className="text-sm tracking-wide text-ink-500 uppercase hover:text-ink-800 hover:underline"
+                  className="font-mono text-[11px] tracking-[0.16em] text-ink-500 uppercase hover:text-ink-900 hover:underline"
                 >
                   {product.brand.name}
                 </Link>
               ) : null}
 
-              <h1 className="mt-1 font-display text-3xl font-bold text-ink-900 sm:text-4xl">
+              <h1 className="mt-2 text-[clamp(2.25rem,4.4vw,3.5rem)] font-bold text-ink-900">
                 {product.name}
               </h1>
 

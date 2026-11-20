@@ -65,7 +65,7 @@ export function Countdown({ campaign }: { campaign: Campaign }) {
             ].map((part) => (
               <li
                 key={part.unit}
-                className="min-w-14 rounded-xl bg-white/10 px-2 py-2 text-center"
+                className="min-w-14 bg-white/10 px-2 py-2 text-center"
               >
                 <span data-numeric className="block font-mono text-lg leading-none font-semibold">
                   {String(part.value).padStart(2, '0')}

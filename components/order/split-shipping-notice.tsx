@@ -110,8 +110,8 @@ export function SplitShippingNotice({
                   key={option.methodId}
                   className={
                     selection[group.constraint] === option.methodId
-                      ? 'flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-ink-900 bg-clay-50 p-3'
-                      : 'flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-ink-200 p-3 hover:border-ink-400'
+                      ? 'flex cursor-pointer items-center justify-between gap-4 border border-ink-900 bg-clay-50 p-3'
+                      : 'flex cursor-pointer items-center justify-between gap-4 border border-ink-200 p-3 hover:border-ink-400'
                   }
                 >
                   <span className="flex items-center gap-3">

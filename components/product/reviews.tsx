@@ -77,7 +77,7 @@ export function Reviews({ summary }: { summary: ReviewSummary }) {
               ) : null}
 
               {review.reply ? (
-                <div className="mt-3 rounded-xl bg-clay-50 p-4">
+                <div className="mt-3 bg-clay-50 p-4">
                   <p className="text-xs font-medium text-ink-500">Réponse de la boutique</p>
                   <p className="mt-1 leading-relaxed whitespace-pre-line text-ink-700">
                     {review.reply}

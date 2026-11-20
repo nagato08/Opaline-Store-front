@@ -117,7 +117,7 @@ export function PurchasePanel({ product }: { product: ProductDetail }) {
                         setStatus('idle');
                       }}
                       className={cn(
-                        'rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        'border px-4 py-2 text-sm font-medium transition-colors duration-150',
                         active
                           ? 'border-walnut-500 bg-walnut-500 text-white'
                           : 'border-ink-300 text-ink-700 hover:border-ink-500',

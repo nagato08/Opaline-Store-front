@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mail, ShoppingBag } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { NewsletterForm } from '@/components/marketing/newsletter-form';
 import { getCategoryTree } from '@/lib/data/catalog';
 import { getStoreSettings } from '@/lib/data/settings';
@@ -53,20 +53,36 @@ export async function Footer() {
   };
 
   return (
-    <footer className="mt-20 bg-walnut-900 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.2fr_repeat(3,1fr)]">
+    <footer className="mt-24 bg-ink-900 text-white">
+      <div className="mx-auto max-w-7xl px-4 py-16 lg:px-8">
+        {/* La lettre d'information ouvre le pied de page au lieu de s'y
+            cacher : c'est le dernier geste possible avant de quitter, et
+            l'enterrer sous quatre colonnes de liens revient à ne pas la
+            proposer. */}
+        <div className="grid gap-8 border-b border-white/15 pb-14 lg:grid-cols-2 lg:items-end">
           <div>
-            <p className="flex items-center gap-2.5">
-              <span
-                aria-hidden
-                className="grid size-9 place-items-center rounded-xl bg-walnut-500 text-white"
-              >
-                <ShoppingBag className="size-4.5" />
-              </span>
-              <span className="font-display text-xl font-bold">{store.name}</span>
+            <p className="font-mono text-[11px] tracking-[0.18em] text-white/50 uppercase">
+              Lettre d’information
             </p>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
+            <p className="mt-4 max-w-lg text-[clamp(1.75rem,3.4vw,2.75rem)] leading-[1.02] font-bold text-white">
+              Les arrivages et les remises, une fois par semaine.
+            </p>
+            <p className="mt-4 text-sm text-white/55">
+              Désinscription en un clic, aucune revente d’adresse.
+            </p>
+          </div>
+          <NewsletterForm />
+        </div>
+
+        <div className="mt-14 grid gap-10 md:grid-cols-2 lg:grid-cols-[1.2fr_repeat(3,1fr)]">
+          <div>
+            <p className="font-display text-2xl leading-none font-bold tracking-[-0.045em]">
+              {store.name}
+              <span aria-hidden className="text-walnut-300">
+                .
+              </span>
+            </p>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/55">
               Meubles, électronique et épicerie. Expédié depuis la France, livré
               en France et au Canada.
             </p>
@@ -89,16 +105,16 @@ export async function Footer() {
             <nav key={column.title} aria-labelledby={`pied-${column.title}`}>
               <h2
                 id={`pied-${column.title}`}
-                className="font-sans text-sm font-semibold text-white"
+                className="font-mono text-[11px] tracking-[0.18em] text-white/45 uppercase"
               >
                 {column.title}
               </h2>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-5 space-y-3">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-white/60 transition-colors duration-150 hover:text-white"
+                      className="text-[15px] text-white/70 underline-offset-4 transition-colors duration-150 hover:text-white hover:underline"
                     >
                       {link.label}
                     </Link>
@@ -109,24 +125,7 @@ export async function Footer() {
           ))}
         </div>
 
-        {/* La lettre d'information vit ici plutôt qu'en bande séparée : c'est
-            le dernier geste possible avant de quitter la page, et le pied de
-            page est le seul endroit présent sur toutes. */}
-        <div className="mt-12 border-t border-white/10 pt-10">
-          <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="font-display text-lg font-semibold">
-                Inscrivez-vous à notre lettre d’information
-              </p>
-              <p className="mt-1.5 text-sm text-white/60">
-                Les nouveautés et les promotions, une fois par semaine. Désinscription en un clic.
-              </p>
-            </div>
-            <NewsletterForm />
-          </div>
-        </div>
-
-        <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/15 pt-6 font-mono text-[11px] tracking-wide text-white/45 uppercase sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {new Date().getFullYear()} {store.name}. Tous droits réservés.
           </p>

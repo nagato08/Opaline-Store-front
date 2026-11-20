@@ -49,11 +49,11 @@ export function PopularProducts({
   return (
     <div>
       {groups.length > 0 ? (
-        <div className="-mx-4 mb-7 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+        <div className="-mx-4 mb-8 overflow-x-auto border-b border-ink-900/12 px-4 lg:mx-0 lg:px-0">
           <div
             role="tablist"
             aria-label="Filtrer par rayon"
-            className="flex min-w-max items-center gap-2"
+            className="flex min-w-max items-center gap-7"
           >
             <Tab selected={active === null} onSelect={() => setActive(null)}>
               Tout
@@ -100,12 +100,15 @@ function Tab({
       role="tab"
       aria-selected={selected}
       onClick={onSelect}
+      /* Onglet souligné plutôt que gélule teintée : une rangée de pastilles
+         colorées au-dessus d'une grille de produits se dispute l'attention
+         avec elle. Le trait sous le libellé actif suffit à dire où l'on est. */
       className={cn(
-        'rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-150',
+        'border-b-2 pb-2 font-mono text-[11px] tracking-[0.16em] whitespace-nowrap uppercase transition-colors duration-150',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-walnut-500',
         selected
-          ? 'bg-walnut-500 text-white'
-          : 'bg-walnut-50 text-ink-700 hover:bg-walnut-100',
+          ? 'border-ink-900 text-ink-900'
+          : 'border-transparent text-ink-500 hover:text-ink-900',
       )}
     >
       {children}

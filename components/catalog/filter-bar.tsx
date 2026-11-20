@@ -137,7 +137,7 @@ export function FilterBar({ brands, resultCount }: { brands: Brand[]; resultCoun
                   aria-pressed={active}
                   onClick={() => toggleBrand(brand.id)}
                   className={cn(
-                    'rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150',
+                    'border px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors duration-150',
                     active
                       ? 'border-walnut-500 bg-walnut-500 text-white'
                       : 'border-ink-300 text-ink-700 hover:border-ink-500',

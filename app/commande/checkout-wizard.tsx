@@ -207,7 +207,7 @@ export function CheckoutWizard({ initialCart, initialPaymentMethods }: { initial
             <li key={item.key} className="flex items-center gap-2">
               <span
                 className={cn(
-                  'flex h-8 items-center gap-2 rounded-full px-3 text-sm font-medium transition-colors duration-150',
+                  'flex h-8 items-center gap-2 px-3 text-sm font-medium transition-colors duration-150',
                   index < stepIndex
                     ? 'bg-success-soft text-success'
                     : index === stepIndex

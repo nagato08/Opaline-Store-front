@@ -32,7 +32,7 @@ export default async function WishlistPage() {
             /* Pas de redirection vers la connexion : le visiteur a cliqué sur
                un cœur, pas demandé à se connecter. On explique, et on laisse
                le choix. */
-            <div className="mt-8 rounded-xl bg-clay-50 p-6">
+            <div className="mt-8 bg-clay-50 p-6">
               <p className="text-[15px] text-ink-700">
                 Les favoris sont rattachés à votre compte : ils vous suivent d’un appareil à
                 l’autre, et survivent à la fermeture du navigateur.
@@ -40,13 +40,13 @@ export default async function WishlistPage() {
               <div className="mt-5 flex flex-wrap gap-3">
                 <Link
                   href="/compte/connexion?suite=/favoris"
-                  className="inline-flex h-11 items-center rounded-xl bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
+                  className="inline-flex h-11 items-center bg-walnut-500 px-5 font-medium text-white transition-colors duration-150 hover:bg-walnut-600"
                 >
                   Se connecter
                 </Link>
                 <Link
                   href="/compte/inscription"
-                  className="inline-flex h-11 items-center rounded-xl px-5 font-medium text-ink-900 ring-1 ring-ink-300 ring-inset transition-colors duration-150 hover:bg-ink-50"
+                  className="inline-flex h-11 items-center px-5 font-medium text-ink-900 ring-1 ring-ink-300 ring-inset transition-colors duration-150 hover:bg-ink-50"
                 >
                   Créer un compte
                 </Link>

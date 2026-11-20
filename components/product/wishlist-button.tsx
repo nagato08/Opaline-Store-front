@@ -86,7 +86,7 @@ export function WishlistButton({
       onClick={add}
       disabled={status === 'done'}
       aria-live="polite"
-      className="mt-3 inline-flex h-11 items-center gap-2 rounded-xl px-4 text-[15px] font-medium text-ink-700 ring-1 ring-ink-300 ring-inset transition-colors duration-150 hover:bg-ink-50 disabled:text-success disabled:ring-success/30"
+      className="mt-3 inline-flex h-11 items-center gap-2 px-4 text-[15px] font-medium text-ink-700 ring-1 ring-ink-300 ring-inset transition-colors duration-150 hover:bg-ink-50 disabled:text-success disabled:ring-success/30"
     >
       {status === 'done' ? (
         <>

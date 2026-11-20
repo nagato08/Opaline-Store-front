@@ -66,10 +66,10 @@ export function WishlistView({ items }: { items: WishlistItem[] }) {
                   alt=""
                   width={80}
                   height={80}
-                  className="size-20 rounded-xl object-cover"
+                  className="size-20 object-cover"
                 />
               ) : (
-                <span className="grid size-20 place-items-center rounded-xl bg-clay-100">
+                <span className="grid size-20 place-items-center bg-clay-100">
                   <ImageOff aria-hidden className="size-5 text-ink-400" />
                 </span>
               )}

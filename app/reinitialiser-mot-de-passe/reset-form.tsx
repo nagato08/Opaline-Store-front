@@ -42,7 +42,7 @@ export function ResetForm() {
 
   if (!token) {
     return (
-      <div role="alert" className="rounded-xl bg-clay-50 p-5 text-[15px] text-ink-700">
+      <div role="alert" className="bg-clay-50 p-5 text-[15px] text-ink-700">
         Ce lien est incomplet. Recommencez depuis{' '}
         <Link
           href="/compte/mot-de-passe-oublie"
@@ -73,7 +73,7 @@ export function ResetForm() {
           aria-describedby="regle"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="mt-1.5 h-12 w-full rounded-xl bg-white px-3.5 text-base text-ink-900 ring-1 ring-ink-200 ring-inset"
+          className="mt-1.5 h-12 w-full bg-white px-3.5 text-base text-ink-900 ring-1 ring-ink-200 ring-inset"
         />
       </div>
 
